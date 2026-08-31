@@ -17,3 +17,6 @@
   draining.
 - **Decision**: Accepted ADR-0012 for bounded backpressure, mode-specific retry
   budgets, scoped failure blocking, and protected DLQ custody.
+- **Decision**: Accepted ADR-0013 for bounded child-before-parent handling,
+  controlled source-of-truth fallback, relation-specific cache misses, and
+  deterministic coalescing.

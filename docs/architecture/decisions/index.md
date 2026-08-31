@@ -32,6 +32,9 @@ Accepted decisions:
 - [ADR-0012: Backpressure, retry, and DLQ policy](0012-backpressure-retry-dlq-policy.md) -
   Bounded queues, mode-specific retries, scoped blocking, and protected DLQ
   custody contain failures without data loss.
+- [ADR-0013: Stream pipeline context resolution](0013-stream-pipeline-context-resolution.md) -
+  Bounded pending, controlled source fallback, and deterministic coalescing
+  resolve live events without indefinite waits.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

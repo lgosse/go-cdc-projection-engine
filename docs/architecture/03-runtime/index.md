@@ -7,7 +7,7 @@ Stamp the live service behavior from startup through offset advancement.
 - [Startup and readiness](startup-and-readiness.md) - Validation, dependency
   checks, and safe partial operation.
 - [Stream pipeline](stream-pipeline.md) - Resolution, coalescing, transformation,
-  and write flow.
+  and write flow; bounded context resolution and coalescing are accepted for v1.
 - [Cache and reverse lookups](cache-and-reverse-lookups.md) - Population,
   invalidation, misses, and recovery.
 - [Elasticsearch writes](elasticsearch-writes.md) - Scripted updates, dual writes,

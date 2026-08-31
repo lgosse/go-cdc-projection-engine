@@ -1,13 +1,12 @@
 ---
-type: Architecture Review Topic
-title: Stream pipeline
-description: Defines deterministic live-event processing and coalescing boundaries.
-tags: [runtime, streaming, batching, transformations]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0013: Stream pipeline context resolution"
+description: The stream pipeline uses bounded pending and controlled source fallback to assemble deterministic projection mutations.
+tags: [architecture, adr, streaming, coalescing, context, repair]
 status: accepted
 decision_id: ADR-0013
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Pending child events have bounded in-memory and durable repair lifecycles.
   - Source-of-truth read-through is permitted only by an explicit relation policy with rate, timeout, and deduplication controls.
@@ -15,7 +14,15 @@ conditions:
   - A coalesced mutation completes all contributing offsets only after one definitive outcome.
 ---
 
-# Stream pipeline
+# ADR-0013: Stream pipeline context resolution
+
+## Context
+
+Kafka topics are independently partitioned, so a child event may arrive before
+its parent event—or the parent event may never be emitted during the engine's
+run. Redis is rebuildable and may miss rarely updated references. The pipeline
+must resolve enough context for deterministic Bloblang transformation without
+waiting forever or publishing unsafe partial projections.
 
 ## Decision
 
@@ -26,40 +33,24 @@ read explicitly permitted by the relation's miss policy.
 
 When a child arrives before its parent, keep the event pending only within a
 bounded retry/age window. Use a durable pending or repair record when the wait
-outlives normal in-memory processing. If the parent is still unavailable, apply
-an explicit orphan disposition—such as audited discard, DLQ, or an allowed
-partial projection—rather than retaining the event indefinitely. A missing
-parent event is not by itself proof that the parent entity does not exist.
+outlives normal in-memory processing. If the parent is still unavailable, confirm
+whether it exists in the source of truth and apply an explicit orphan
+disposition—such as audited discard, DLQ, or an allowed partial projection—rather
+than retaining the event indefinitely. A missing parent event is not by itself
+proof that the parent entity does not exist. A retained deletion fence takes
+precedence over a late child event.
 
 Treat Redis misses according to the relation: controlled read-through with
 per-key deduplication, rate limits, and timeouts may be allowed for infrequent
 reference lookups; reverse-index misses may defer to asynchronous rebuild or
-repair. Do not query foreign MongoDB services without an explicit policy, and do
-not publish derived values while required context is unavailable.
+repair. Do not issue unrestricted foreign MongoDB queries, and do not publish
+derived values while required context is unavailable.
 
 Apply source-scoped fences, coalesce events by projection document within bounded
 batch limits, evaluate Bloblang once against the canonical context, and emit one
 idempotent mutation per target document and active physical index. Record the
 outcome against every contributing partition offset only after the combined
 mutation has a definitive result.
-
-## Pros
-
-- Coalescing reduces write amplification.
-- A canonical intermediate form supports shared semantics across modes.
-- Per-document mutation boundaries match Elasticsearch atomicity.
-- Bounded pending and relation-specific fallbacks distinguish late context from
-  genuinely missing source data.
-
-## Cons and risks
-
-- Coalescing records from multiple Kafka partitions complicates commits.
-- A partial event stream may not reconstruct the canonical document in memory.
-- Large hot documents can dominate a batch and create skew.
-- Controlled source reads add latency and can overload a source service if miss
-  protection is insufficient.
-- Pending and orphan custody add lifecycle, retention, and operator-workflow
-  complexity.
 
 ## Alternatives considered
 
@@ -97,7 +88,7 @@ mutation has a definitive result.
   partition offset.
 - Deleted parents cannot be recreated by late child events.
 
-## Review trigger
+## Review triggers
 
 Revisit if pending work routinely exceeds its horizon, source read-through
 threatens service capacity, orphan rates indicate a contract problem, or
@@ -105,21 +96,11 @@ coalescing cannot preserve reliable offset completion.
 
 ## Related concepts
 
-- [CDC event envelope](../02-contracts/cdc-event-envelope.md)
-- [Identity, time, and ordering](../02-contracts/identity-time-ordering.md)
+- [Stream pipeline](../03-runtime/stream-pipeline.md)
+- [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
 - [Relationship model](../02-contracts/relationship-model.md)
+- [Identity, time, and ordering](../02-contracts/identity-time-ordering.md)
 - [Transformation contract](../02-contracts/transformation-contract.md)
-- [Cache and reverse lookups](cache-and-reverse-lookups.md)
-- [Elasticsearch writes](elasticsearch-writes.md)
-- [Offsets and delivery semantics](offsets-and-delivery.md)
-- [Backpressure, retry, and DLQ](backpressure-retry-dlq.md)
-
-## Follow-up questions
-
-- What pending age/retry limit and durable custody trigger apply before an event
-  becomes an orphan or repair case?
-- Which relation types permit controlled source-of-truth read-through on a cache
-  miss, and what rate/timeout limits protect those sources?
-- What are the maximum batch age, size, memory, and hot-key fairness budgets?
-- Can coalescing cross topic or partition boundaries safely when one combined
-  mutation fails?
+- [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
+- [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
+- [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
