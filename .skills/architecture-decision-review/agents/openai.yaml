@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Decision Review"
+  short_description: "Review architecture decisions interactively"
+  default_prompt: "Use $architecture-decision-review to review the next architecture decision interactively."

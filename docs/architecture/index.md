@@ -8,6 +8,9 @@ This Open Knowledge Format bundle decomposes the two source drafts into small,
 linked decisions. Every proposal remains provisional until its concept is
 reviewed and stamped.
 
+The review workflow is encoded in the repository-local
+[architecture decision review skill](../../.skills/architecture-decision-review/SKILL.md).
+
 ## Start here
 
 - [Review method](review-method.md) - Status vocabulary, stamping criteria, and

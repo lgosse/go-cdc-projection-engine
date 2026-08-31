@@ -10,6 +10,8 @@ No implementation or source-code architecture has been selected yet.
 
 - [Architecture review workspace](docs/architecture/index.md) — the design split
   into small, linked decisions to review and stamp one by one.
+- [Architecture decision review skill](.skills/architecture-decision-review/SKILL.md)
+  — the interactive framework used to review and record those decisions.
 - [Original system design draft](docs/design/system.md) — preserved source draft.
 - [Original OpenTelemetry draft](docs/design/otel.md) — preserved source draft.
 
