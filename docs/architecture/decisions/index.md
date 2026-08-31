@@ -92,6 +92,18 @@ Accepted decisions:
 - [ADR-0031: Ownership and governance](0031-ownership-and-governance.md) -
   A small-team model assigns back-end, lead, DevOps, and DPO responsibilities
   with risk-based review and explicit escalation paths.
+- [ADR-0032: Correctness invariants](0032-correctness-invariants.md) -
+  Correctness uses strict safety invariants, conditional convergence claims,
+  explicit unknown outcomes, and narrowest-safe-scope failure handling.
+- [ADR-0033: Test strategy](0033-test-strategy.md) - Layered per-change,
+  real-dependency integration, and release testing proves accepted contracts;
+  scheduled resilience testing is deferred.
+- [ADR-0034: Performance and failure testing](0034-performance-and-failure-testing.md) -
+  Representative workload benchmarks and targeted failure tests validate
+  capacity and recovery; recurring resilience campaigns remain deferred.
+- [ADR-0035: Release acceptance](0035-release-acceptance.md) - Separate gates
+  promote binaries, manifests, and migrations using correctness, compatibility,
+  performance, security, and rollback evidence, with an audited emergency path.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

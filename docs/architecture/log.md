@@ -75,3 +75,16 @@
 - **Decision**: Accepted ADR-0031 for a small-team ownership model: back-end
   ownership, lead accountability, DevOps infrastructure responsibility, DPO
   privacy authority, and risk-based review.
+- **Decision**: Accepted ADR-0032 for strict safety invariants, conditional
+  convergence claims, explicit `unknown` comparison outcomes, and
+  narrowest-safe-scope handling; global-stop thresholds for shared metadata
+  failures remain deferred.
+- **Decision**: Accepted ADR-0033 for layered per-change, integration, and
+  release testing against accepted invariants and real dependency capabilities;
+  scheduled resilience testing remains a later topic.
+- **Decision**: Accepted ADR-0034 for representative workload benchmarks,
+  targeted failure tests, isolated destructive testing, and initial release
+  gates; recurring resilience campaigns remain deferred.
+- **Decision**: Accepted ADR-0035 for separate binary, manifest, and migration
+  acceptance gates, explicit cutover/retirement evidence, and an audited
+  emergency path that preserves absolute safety invariants.
