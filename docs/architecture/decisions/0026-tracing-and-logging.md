@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Tracing and logging
-description: Defines trace boundaries, sampling, structured events, and sensitive-data controls.
-tags: [observability, tracing, logging, privacy]
-sources:
-  - resource: ../../design/otel.md
-    title: OpenTelemetry design draft
+type: Architecture Decision Record
+title: "ADR-0026: Tracing and logging"
+description: Tracing follows meaningful processing boundaries, ordinary event spans are sampled, and structured logs use protected diagnostics without raw payloads.
+tags: [architecture, adr, observability, tracing, logging, privacy]
 status: accepted
 decision_id: ADR-0026
 accepted_on: 2026-08-31
@@ -18,7 +15,15 @@ conditions:
   - Telemetry export remains bounded and non-blocking; DLQ and control-plane records provide durable failure context.
 ---
 
-# Tracing and logging
+# ADR-0026: Tracing and logging
+
+## Context
+
+The design draft proposes trace trees and structured logs for streaming and
+batch modes, but includes raw payloads and document identifiers in normal log
+examples. At the engine's event volume, tracing every event in full would also
+create excessive cost and cardinality. ADR-0024 and ADR-0025 require bounded,
+privacy-safe, non-blocking telemetry.
 
 ## Decision
 
@@ -53,21 +58,6 @@ Exporter or backend failure may lose telemetry and emits a bounded health signal
 but never blocks Kafka processing or offset decisions. Durable DLQ and
 engine-metadata records remain the source for retained failure context.
 
-## Pros
-
-- Controls telemetry cost at high event rates.
-- Retains correlation for slow or failed operations.
-- Reduces privacy and secret leakage risk.
-- Preserves useful investigation paths through protected references and DLQ
-  custody.
-
-## Cons and risks
-
-- Sampling can miss rare record-specific failures.
-- Batch spans obscure individual-event latency.
-- Diagnostic indirection slows ad hoc debugging.
-- Incident-mode sampling and protected diagnostics require operational controls.
-
 ## Alternatives considered
 
 1. Trace every event and include every identifier in logs. This eases ad hoc
@@ -101,7 +91,7 @@ engine-metadata records remain the source for retained failure context.
 - Collector/backend outages do not block processing or offset advancement.
 - Batch, bootstrap, migration, and repair traces remain useful under load.
 
-## Review trigger
+## Review triggers
 
 Revisit if sampling misses incidents, trace/log retention exceeds budget,
 diagnostic indirection slows recovery, or privacy policy changes permitted
@@ -109,25 +99,11 @@ telemetry attributes.
 
 ## Related concepts
 
-- [Tracing and logging](tracing-and-logging.md)
-- [Telemetry conventions](telemetry-conventions.md)
-- [Metrics and alerting](metrics-and-alerting.md)
-- [Health and diagnostics](health-and-diagnostics.md)
+- [Tracing and logging](../06-observability/tracing-and-logging.md)
+- [Telemetry conventions](../06-observability/telemetry-conventions.md)
+- [Metrics and alerting](../06-observability/metrics-and-alerting.md)
+- [Health and diagnostics](../06-observability/health-and-diagnostics.md)
 - [Security and privacy](../05-quality-attributes/security-and-privacy.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
-
-## Follow-up questions
-
-- What incident-mode sampling override and authorization are required?
-- Which source coordinates may appear in protected diagnostics?
-- What final stable error taxonomy and log event schemas are required?
-- Which telemetry fields need pseudonymization?
-- What trace and log retention applies relative to metrics and DLQ custody?
-
-## Questions to stamp
-
-- What sampling policy changes during incidents?
-- Which stable error taxonomy is shared by logs, metrics, and DLQ?
-- What payload fields, if any, may appear in operator telemetry?

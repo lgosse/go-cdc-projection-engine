@@ -51,3 +51,15 @@
 - **Decision**: Accepted ADR-0023 for a capability-tested dependency matrix,
   pinned client/runtime versions, fail-closed readiness checks, and guarded
   rolling upgrades.
+- **Decision**: Accepted ADR-0024 for bounded OpenTelemetry attributes,
+  protected diagnostics, sampled traces, shared error codes, and non-blocking
+  collector export.
+- **Decision**: Accepted ADR-0025 for canonical progress/saturation/correctness
+  metrics and symptom-based alerts with bounded dimensions, ownership, and
+  runbooks.
+- **Decision**: Accepted ADR-0026 for meaningful trace boundaries, sampled event
+  spans, retained failure/control-plane traces, protected structured logs, and
+  non-blocking telemetry export.
+- **Decision**: Accepted ADR-0027 for local liveness, stable scoped readiness,
+  separate search/ingestion/recovery status, and authenticated authoritative
+  diagnostics.

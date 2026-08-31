@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Telemetry conventions
-description: Defines OpenTelemetry identity, attribute ownership, and propagation rules.
-tags: [observability, opentelemetry, conventions]
-sources:
-  - resource: ../../design/otel.md
-    title: OpenTelemetry design draft
+type: Architecture Decision Record
+title: "ADR-0024: Telemetry conventions"
+description: OpenTelemetry uses stable resource identity, bounded dimensions, protected diagnostics, sampled traces, and non-blocking collector export.
+tags: [architecture, adr, observability, opentelemetry, telemetry, privacy]
 status: accepted
 decision_id: ADR-0024
 accepted_on: 2026-08-31
@@ -18,7 +15,14 @@ conditions:
   - Raw payloads, secrets, and sensitive values are excluded from normal telemetry; protected diagnostics may use controlled pseudonymous references.
 ---
 
-# Telemetry conventions
+# ADR-0024: Telemetry conventions
+
+## Context
+
+The draft defines telemetry for streaming and batch modes but mixes resource and
+workload attributes, includes high-cardinality identifiers, and proposes raw
+payloads in error logs. Observability must remain useful across projections
+without becoming a privacy leak or a processing dependency.
 
 ## Decision
 
@@ -56,22 +60,6 @@ routing, backend selection, authentication, and retention are platform
 responsibilities. Local buffers and retries are bounded; exporter failure emits a
 bounded internal signal and never pauses Kafka processing.
 
-## Pros
-
-- Produces interoperable telemetry across backends.
-- Separates stable resource identity from per-workload dimensions.
-- Trace links model batch causality better than arbitrary parent selection.
-- Keeps telemetry independent of a specific backend and safe under exporter
-  outages.
-
-## Cons and risks
-
-- Projection dimensions multiply time-series count across many manifests.
-- Upstream trace context may be missing or untrusted.
-- Semantic conventions and backend support evolve over time.
-- Sampling and redaction can hide rare details without a protected diagnostic
-  workflow.
-
 ## Alternatives considered
 
 1. Instrument separately for each metrics, tracing, and logging backend. This
@@ -105,7 +93,7 @@ bounded internal signal and never pauses Kafka processing.
 - Protected diagnostics and DLQ references are sufficient to investigate rare
   failures.
 
-## Review trigger
+## Review triggers
 
 Revisit if telemetry cardinality or retention exceeds platform budgets, if the
 collector cannot preserve required context, if sampling misses incidents, or if
@@ -113,17 +101,11 @@ privacy policy changes permitted diagnostic attributes.
 
 ## Related concepts
 
-- [Metrics and alerting](metrics-and-alerting.md)
-- [Tracing and logging](tracing-and-logging.md)
-- [Health and diagnostics](health-and-diagnostics.md)
+- [Telemetry conventions](../06-observability/telemetry-conventions.md)
+- [Metrics and alerting](../06-observability/metrics-and-alerting.md)
+- [Tracing and logging](../06-observability/tracing-and-logging.md)
+- [Health and diagnostics](../06-observability/health-and-diagnostics.md)
 - [Security and privacy](../05-quality-attributes/security-and-privacy.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
-
-## Follow-up questions
-
-- Which attributes are mandatory at resource, process, workload, and event scope?
-- What metric-series and retention budgets apply at deployment scale?
-- Which collector/backends and tail-sampling capabilities are available?
-- What stable error taxonomy and protected pseudonymization mechanism are used?

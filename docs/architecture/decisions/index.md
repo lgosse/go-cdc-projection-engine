@@ -67,6 +67,18 @@ Accepted decisions:
 - [ADR-0023: Compatibility and dependencies](0023-compatibility-and-dependencies.md) -
   Supported dependency combinations are capability-tested, pinned per release,
   and fail readiness when required behavior is unavailable.
+- [ADR-0024: Telemetry conventions](0024-telemetry-conventions.md) -
+  OpenTelemetry uses stable resource identity, bounded dimensions, protected
+  diagnostics, sampled traces, and non-blocking collector export.
+- [ADR-0025: Metrics and alerting](0025-metrics-and-alerting.md) - Canonical
+  metrics cover progress, saturation, dependencies, correctness, and lifecycle;
+  symptom-based alerts use bounded dimensions and owned runbooks.
+- [ADR-0026: Tracing and logging](0026-tracing-and-logging.md) - Tracing follows
+  meaningful processing boundaries, ordinary event spans are sampled, and
+  structured logs use protected diagnostics without raw payloads.
+- [ADR-0027: Health and diagnostics](0027-health-and-diagnostics.md) - Liveness
+  is local-only, readiness is stable and scoped, and authenticated diagnostics
+  expose authoritative projection state with timestamps.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

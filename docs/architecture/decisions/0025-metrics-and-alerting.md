@@ -1,13 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Metrics and alerting
-description: Defines service-level metrics and symptom-based actionable alerts.
-tags: [observability, metrics, alerts, slo]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
-  - resource: ../../design/otel.md
-    title: OpenTelemetry design draft
+type: Architecture Decision Record
+title: "ADR-0025: Metrics and alerting"
+description: Canonical metrics cover progress, saturation, dependencies, correctness, and lifecycle; symptom-based alerts use bounded dimensions and owned runbooks.
+tags: [architecture, adr, observability, metrics, alerting, slo]
 status: accepted
 decision_id: ADR-0025
 accepted_on: 2026-08-31
@@ -20,7 +15,14 @@ conditions:
   - Telemetry and backend outages never block source processing or offset decisions.
 ---
 
-# Metrics and alerting
+# ADR-0025: Metrics and alerting
+
+## Context
+
+The draft defines useful metrics but mixes namespaces, fixed thresholds, and
+unbounded identifiers. Approved performance and telemetry decisions require
+freshness and recovery objectives, bounded dimensions, privacy-safe diagnostics,
+and non-blocking telemetry export.
 
 ## Decision
 
@@ -31,9 +33,9 @@ Maintain one canonical metric surface organized into five groups:
    work.
 2. **Throughput and saturation:** received events, effective mutations, queue
    records/bytes/age, batch size/age, CPU, memory, and dependency saturation.
-3. **Dependency and sink behavior:** Elasticsearch bulk latency/failures/
-   throttling, Redis hit/miss and lookup latency, source-read latency/rate,
-   Kafka reconnects, and rebalance activity.
+3. **Dependency and sink behavior:** Elasticsearch bulk latency, failures and
+   throttling; Redis hit/miss and lookup latency; source-read latency/rate;
+   Kafka reconnects; and rebalance activity.
 4. **Correctness and custody:** source-fence rejections, deterministic failures,
    DLQ writes and custody failures, reconciliation discrepancies and repairs, and
    migration verification failures.
@@ -58,20 +60,6 @@ dashboard-only unless their rate becomes abnormal.
 Every page or ticket has an owner, explicit action, and runbook. Use sustained
 windows and rates, and provide maintenance/migration suppression or severity
 adjustment. Telemetry export or backend failure never blocks processing.
-
-## Pros
-
-- Supports incident response across every operating mode.
-- Progress and event-age signals reveal stalls that request counts miss.
-- Canonical names avoid the two incompatible metric namespaces in the drafts.
-- Symptom-based severity reduces noise while preserving correctness alerts.
-
-## Cons and risks
-
-- Item, projection, topic, and error labels can create high cardinality.
-- Counters cannot directly express ratios without reliable denominators.
-- Drift and DLQ alerts require clear operator ownership to remain useful.
-- Sustained-window tuning can delay detection of very short incidents.
 
 ## Alternatives considered
 
@@ -104,27 +92,18 @@ adjustment. Telemetry export or backend failure never blocks processing.
 - DLQ custody, stalled progress, and migration failures page reliably.
 - Exporter/backend outages do not block processing or offset advancement.
 
-## Review trigger
+## Review triggers
 
 Revisit if alerts miss incidents, page too noisily, metric cardinality exceeds
 budget, ownership/runbooks become stale, or approved objectives change.
 
 ## Related concepts
 
-- [Metrics and alerting](metrics-and-alerting.md)
-- [Telemetry conventions](telemetry-conventions.md)
-- [Tracing and logging](tracing-and-logging.md)
-- [Health and diagnostics](health-and-diagnostics.md)
+- [Metrics and alerting](../06-observability/metrics-and-alerting.md)
+- [Telemetry conventions](../06-observability/telemetry-conventions.md)
+- [Tracing and logging](../06-observability/tracing-and-logging.md)
+- [Health and diagnostics](../06-observability/health-and-diagnostics.md)
 - [Performance and capacity](../05-quality-attributes/performance-and-capacity.md)
 - [Availability and scaling](../05-quality-attributes/availability-and-scaling.md)
 - [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
-
-## Follow-up questions
-
-- Which exact dimensions are permitted for partition-level progress?
-- What sustained windows and thresholds implement each alert severity?
-- Which alerts page immediately versus create tickets?
-- How are maintenance, bootstrap, migration, and repair windows suppressed?
-- What alert ownership and runbook format will operations use?
-- What metric retention and backend-specific recording rules are required?

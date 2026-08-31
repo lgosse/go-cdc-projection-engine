@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Health and diagnostics
-description: Defines process health, workload readiness, progress, and safe diagnostic surfaces.
-tags: [observability, health, readiness, diagnostics]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0027: Health and diagnostics"
+description: Liveness is local-only, readiness is stable and scoped, and authenticated diagnostics expose authoritative projection state with timestamps.
+tags: [architecture, adr, observability, health, readiness, diagnostics]
 status: accepted
 decision_id: ADR-0027
 accepted_on: 2026-08-31
@@ -18,7 +15,14 @@ conditions:
   - Engine-owned MongoDB is authoritative for control-plane state; diagnostics identify source and observation time when backend views disagree.
 ---
 
-# Health and diagnostics
+# ADR-0027: Health and diagnostics
+
+## Context
+
+The engine must keep search availability independent from projector worker
+health, while Kubernetes probes must not create restart or rebalance storms
+during ordinary dependency outages. Operators also need projection-level state
+that is safer and more reliable than inferring it from logs.
 
 ## Decision
 
@@ -53,20 +57,6 @@ local health. Conflicting or stale views are reported with their source and
 timestamp rather than silently reconciled. Probes are cheap, bounded, and do not
 run full reconciliation or deep scans.
 
-## Pros
-
-- Prevents a global `200` from hiding blocked workloads.
-- Makes control-plane state and progress directly inspectable.
-- Keeps Kubernetes probes cheap and stable.
-- Prevents dependency outages from causing unnecessary restarts or rebalances.
-
-## Cons and risks
-
-- Diagnostic endpoints can leak topology or sensitive identifiers.
-- Aggregating dependency checks can make readiness flap.
-- A detailed endpoint becomes another compatibility surface.
-- Separate status dimensions require richer operational tooling.
-
 ## Alternatives considered
 
 1. Make readiness fail whenever any dependency or projection is degraded. This
@@ -96,7 +86,7 @@ run full reconciliation or deep scans.
 - Stale or conflicting backend state is reported explicitly.
 - Readiness, alerts, and diagnostic status agree on the affected scope.
 
-## Review trigger
+## Review triggers
 
 Revisit if probes flap, diagnostics leak sensitive data, status freshness is
 insufficient for operations, or health scopes cannot represent shared partition
@@ -104,25 +94,11 @@ coupling and migration states.
 
 ## Related concepts
 
-- [Health and diagnostics](health-and-diagnostics.md)
+- [Health and diagnostics](../06-observability/health-and-diagnostics.md)
 - [Availability and scaling](../05-quality-attributes/availability-and-scaling.md)
-- [Metrics and alerting](metrics-and-alerting.md)
-- [Tracing and logging](tracing-and-logging.md)
+- [Metrics and alerting](../06-observability/metrics-and-alerting.md)
+- [Tracing and logging](../06-observability/tracing-and-logging.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
 - [Security and privacy](../05-quality-attributes/security-and-privacy.md)
-
-## Follow-up questions
-
-- Which conditions remove a pod from service versus pause one projection?
-- Who may access diagnostics and how are accesses audited?
-- What status schema and compatibility policy should the diagnostic endpoint use?
-- How stale may an observation be before it becomes `unknown`?
-- How should migration and blue-green phases affect readiness?
-
-## Questions to stamp
-
-- Which conditions remove a pod from service versus pause one projection?
-- Who can access diagnostics?
-- What data is authoritative when diagnostics and backend state disagree?
