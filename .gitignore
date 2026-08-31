@@ -1,0 +1,40 @@
+# Binaries and test executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build and workspace files
+/bin/
+/dist/
+/vendor/
+go.work
+go.work.sum
+
+# Coverage, profiling, and benchmarks
+coverage.*
+*.coverprofile
+*.prof
+*.pprof
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local.yaml
+*.local.yml
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+.tmp/
+*.log
