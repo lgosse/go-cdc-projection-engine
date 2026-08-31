@@ -35,6 +35,12 @@ Accepted decisions:
 - [ADR-0013: Stream pipeline context resolution](0013-stream-pipeline-context-resolution.md) -
   Bounded pending, controlled source fallback, and deterministic coalescing
   resolve live events without indefinite waits.
+- [ADR-0014: Cache and reverse-lookup semantics](0014-cache-and-reverse-lookup-semantics.md) -
+  Redis uses relation-specific derived caches, controlled read-through, and
+  generation-based rebuilds.
+- [ADR-0015: Bootstrap consistency and handoff](0015-bootstrap-consistency-and-handoff.md) -
+  Zero-downtime bootstrap uses source cluster-time boundaries, live dual-write,
+  overlap replay, and resumable checkpoints.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

@@ -119,7 +119,7 @@ coalescing cannot preserve reliable offset completion.
 - What pending age/retry limit and durable custody trigger apply before an event
   becomes an orphan or repair case?
 - Which relation types permit controlled source-of-truth read-through on a cache
-  miss, and what rate/timeout limits protect those sources?
+  miss, and how are those limits represented in the manifest?
 - What are the maximum batch age, size, memory, and hot-key fairness budgets?
 - Can coalescing cross topic or partition boundaries safely when one combined
   mutation fails?

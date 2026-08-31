@@ -1,13 +1,12 @@
 ---
-type: Architecture Review Topic
-title: Bootstrap consistency
-description: Defines how a full source scan converges with concurrent CDC traffic.
-tags: [lifecycle, bootstrap, mongodb, consistency]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0015: Bootstrap consistency and handoff"
+description: Zero-downtime bootstrap uses source cluster-time boundaries, live dual-write, overlap replay, and resumable checkpoints.
+tags: [architecture, adr, bootstrap, migration, consistency, mongo, kafka]
 status: accepted
 decision_id: ADR-0015
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Each source uses its production connector's MongoDB source.wallTime/cluster-time watermark as a source-scoped bootstrap boundary.
   - The target receives live writes during scanning and replays the boundary overlap before cutover.
@@ -15,7 +14,14 @@ conditions:
   - Bootstrap runs and chunks have durable resumable checkpoints in engine-owned MongoDB metadata.
 ---
 
-# Bootstrap consistency
+# ADR-0015: Bootstrap consistency and handoff
+
+## Context
+
+Bootstrap populates initial or migration targets from MongoDB while Kafka CDC
+continues to deliver changes. Independent MongoDB services cannot provide one
+global transaction, Kafka offsets are delivery coordinates rather than source
+freshness revisions, and secondary reads may lag deletes.
 
 ## Decision
 
@@ -47,20 +53,6 @@ Persist bootstrap-run state and per-chunk checkpoints in engine-owned MongoDB.
 Mark a chunk complete only after its target writes and required cache work
 succeed. A crashed or interrupted run resumes unfinished chunks and retains the
 same source boundary.
-
-## Pros
-
-- Makes bootstrap correctness independent of job timing.
-- Keyset ranges work with ObjectIDs and uneven key distributions.
-- Shared fencing prevents old snapshot data overwriting newer changes.
-
-## Cons and risks
-
-- Cross-database snapshots cannot be globally transactional.
-- Capturing and replaying a boundary requires CDC connector support.
-- Deleted records absent from the snapshot still require explicit handling.
-- Secondary lag can return stale records unless boundary fencing and final
-  reconciliation account for it.
 
 ## Alternatives considered
 
@@ -97,7 +89,7 @@ same source boundary.
 - Cache generation and index target are complete and mutually compatible before
   alias cutover.
 
-## Review trigger
+## Review triggers
 
 Revisit if a connector cannot provide a trustworthy cluster-time watermark, if
 source/change retention is shorter than bootstrap catch-up, or if reconciliation
@@ -105,18 +97,12 @@ cannot prove delete and cross-source convergence.
 
 ## Related concepts
 
+- [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
 - [Stream pipeline](../03-runtime/stream-pipeline.md)
 - [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
 - [Identity, time, and ordering](../02-contracts/identity-time-ordering.md)
-- [Blue/green migration](blue-green-migration.md)
-- [Reconciliation and repair](reconciliation-and-repair.md)
-
-## Follow-up questions
-
-- How is each connector's `source.wallTime` watermark acquired and paired with
-  replay positions in production?
-- What exact chunk checkpoint schema and operator resume controls are required?
-- What reconciliation evidence is sufficient to declare delete safety at cutover?
+- [Blue/green migration](../04-data-lifecycle/blue-green-migration.md)
+- [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)

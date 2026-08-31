@@ -1,13 +1,12 @@
 ---
-type: Architecture Review Topic
-title: Cache and reverse lookups
-description: Defines cache ownership, completeness, invalidation, and miss behavior.
-tags: [runtime, redis, cache, relationships]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0014: Cache and reverse-lookup semantics"
+description: Redis uses relation-specific derived caches, controlled read-through, and generation-based rebuilds.
+tags: [architecture, adr, redis, cache, reverse-index, rebuild]
 status: accepted
 decision_id: ADR-0014
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Reference caches may expire only when their relation declares bounded staleness and controlled read-through or repair.
   - Reverse indexes required for root resolution are retained or proactively rebuilt and do not casually expire.
@@ -15,7 +14,15 @@ conditions:
   - Redis remains derived; every cache value and reverse index has a durable or reconstructible source.
 ---
 
-# Cache and reverse lookups
+# ADR-0014: Cache and reverse-lookup semantics
+
+## Context
+
+Redis is a non-authoritative operational store. It holds both refreshable
+reference values and reverse indexes needed to resolve multi-hop relationships,
+but those data types have different correctness and miss behavior. TTL eviction,
+Redis loss, and rebuilds must not permanently prevent valid projections or expose
+partially rebuilt state.
 
 ## Decision
 
@@ -43,21 +50,6 @@ Each relation declares its freshness or completeness requirement, miss policy,
 retention/TTL policy, rebuildability, and source protection limits. Redis loss
 must delay processing or trigger rebuild, never remove authoritative Kafka,
 MongoDB metadata, deletion fences, or migration state.
-
-## Pros
-
-- Preserves source-service isolation at runtime.
-- Makes cache completeness and recovery observable.
-- Relation-specific miss policy avoids one unsafe global fallback.
-
-## Cons and risks
-
-- TTL eviction can break required root resolution.
-- Deferred events need durable ordering and retry ownership.
-- Cache warm-up can delay readiness or cause a miss storm.
-- Read-through fallback can add source-service load and must be protected.
-- Generation cutovers require source boundaries, completeness checks, and
-  coordination with live processing.
 
 ## Alternatives considered
 
@@ -91,7 +83,7 @@ MongoDB metadata, deletion fences, or migration state.
 - Older cache data cannot overwrite a newer fenced value.
 - Redis loss does not lose authoritative state or cause unsafe projection writes.
 
-## Review trigger
+## Review triggers
 
 Revisit if cache rebuild time exceeds the source/change retention window, if
 read-through threatens source capacity, if declared staleness is incompatible
@@ -99,16 +91,10 @@ with consumer needs, or if reverse-index completeness cannot be measured.
 
 ## Related concepts
 
-- [Stream pipeline](stream-pipeline.md)
+- [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
+- [Stream pipeline](../03-runtime/stream-pipeline.md)
 - [Relationship model](../02-contracts/relationship-model.md)
 - [Redis authority boundary](../01-system-context/redis-authority-boundary.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
-- [Backpressure, retry, and DLQ](backpressure-retry-dlq.md)
+- [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
-
-## Follow-up questions
-
-- Which keys may expire and which must be retained?
-- What snapshot boundary and generation marker are required for a rebuild?
-- What staleness is acceptable for each reference type?
-- Which relation types may use controlled source-of-truth read-through?

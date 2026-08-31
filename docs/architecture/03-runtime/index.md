@@ -9,7 +9,8 @@ Stamp the live service behavior from startup through offset advancement.
 - [Stream pipeline](stream-pipeline.md) - Resolution, coalescing, transformation,
   and write flow; bounded context resolution and coalescing are accepted for v1.
 - [Cache and reverse lookups](cache-and-reverse-lookups.md) - Population,
-  invalidation, misses, and recovery.
+  invalidation, misses, and recovery; relation-specific retention and
+  generation rebuilds are accepted for v1.
 - [Elasticsearch writes](elasticsearch-writes.md) - Scripted updates, dual writes,
   and partial bulk results; fenced idempotent semantics are accepted for v1.
 - [Offsets and delivery](offsets-and-delivery.md) - Kafka commit semantics and

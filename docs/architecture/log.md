@@ -20,3 +20,8 @@
 - **Decision**: Accepted ADR-0013 for bounded child-before-parent handling,
   controlled source-of-truth fallback, relation-specific cache misses, and
   deterministic coalescing.
+- **Decision**: Accepted ADR-0014 for distinct reference and reverse-index
+  policies, controlled read-through, and generation-based Redis rebuilds.
+- **Decision**: Accepted ADR-0015 for zero-downtime bootstrap using source
+  cluster-time boundaries, live dual-write, overlap replay, delete reconciliation,
+  and resumable chunk checkpoints.
