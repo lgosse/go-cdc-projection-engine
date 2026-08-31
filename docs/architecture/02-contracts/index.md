@@ -14,4 +14,5 @@ Stamp every contract that makes configuration and event processing deterministic
 - [Deletion and replay](deletion-and-replay.md) - Tombstones, removals, and
   resurrection prevention; durable root and child fencing is accepted for v1.
 - [Projection schema](projection-schema.md) - Elasticsearch document and mapping
-  ownership.
+  ownership; explicit versioned mappings and Mongo-authoritative metadata are
+  accepted for v1.

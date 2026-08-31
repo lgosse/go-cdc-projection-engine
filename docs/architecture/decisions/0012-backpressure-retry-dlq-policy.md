@@ -1,13 +1,12 @@
 ---
-type: Architecture Review Topic
-title: Backpressure, retry, and DLQ
-description: Defines failure classification, overload control, and poison-event custody.
-tags: [runtime, retry, backpressure, dlq]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0012: Backpressure, retry, and DLQ policy"
+description: Bounded queues, mode-specific retries, scoped blocking, and protected DLQ custody contain failures without data loss.
+tags: [architecture, adr, backpressure, retry, dlq, resilience]
 status: accepted
 decision_id: ADR-0012
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Queue limits bound records, bytes, and age, and Kafka intake pauses before hard capacity is reached.
   - Transient failures use mode-specific bounded retry budgets and do not become poison-event DLQ records.
@@ -15,7 +14,15 @@ conditions:
   - Blocking scope escalates from event to projection, partition, workload, or process according to failure scope.
 ---
 
-# Backpressure, retry, and DLQ
+# ADR-0012: Backpressure, retry, and DLQ policy
+
+## Context
+
+The accepted offset and Elasticsearch decisions require durable terminal custody
+before Kafka progress advances. The source draft proposes bounded retries and a
+DLQ but also suggests panicking after exhausted transient retries. That would
+turn dependency outages into crash loops and make valid events look like bad
+data.
 
 ## Decision
 
@@ -52,18 +59,6 @@ diagnostics, and retry history. Apply encryption/access control, configurable
 retention, and redaction or secure references where source-data policy requires
 them. Correctness must not depend on expired DLQ data.
 
-## Pros
-
-- Prevents retry storms and uncontrolled memory growth.
-- Preserves enough context for safe replay.
-- Distinguishes dependency incidents from bad records.
-
-## Cons and risks
-
-- Error classification can be wrong as dependencies evolve.
-- Raw payload retention may expose sensitive data.
-- A durable DLQ still needs ownership, retention, and replay controls.
-
 ## Alternatives considered
 
 1. Retry a fixed number of times and then panic the process. This is simple but
@@ -97,7 +92,7 @@ them. Correctness must not depend on expired DLQ data.
 - Live, bootstrap, and replay modes expose their retry, queue, pause, and resume
   states for testing and operations.
 
-## Review trigger
+## Review triggers
 
 Revisit if queue pressure or retry latency violates recovery objectives, if
 failure classification repeatedly chooses the wrong scope, or if privacy and
@@ -105,16 +100,10 @@ retention requirements change the permitted DLQ payload.
 
 ## Related concepts
 
-- [Offsets and delivery semantics](offsets-and-delivery.md)
-- [Elasticsearch writes](elasticsearch-writes.md)
+- [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
+- [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
+- [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [CDC event envelope](../02-contracts/cdc-event-envelope.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
-- [Stream pipeline](stream-pipeline.md)
+- [Stream pipeline](../03-runtime/stream-pipeline.md)
 - [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
-
-## Follow-up questions
-
-- What numeric queue, age, and elapsed-time budgets meet each mode's objective?
-- What exact DLQ indexes, retention schedule, and redaction rules are required?
-- Which dependency signals determine projection-, partition-, or workload-level
-  blocking?

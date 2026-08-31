@@ -49,6 +49,8 @@ timestamp or Kafka offset.
 
 - This decision does not choose between hard-delete and visible soft-delete
   markers in Elasticsearch.
+- A hidden, non-searchable Elasticsearch tombstone or derived fence may be kept
+  to enforce local stale-update suppression; MongoDB remains authoritative.
 - Reference-delete behavior (`null`, default, removal, or error) is a separate
   contract decision.
 - Fence garbage collection requires a later retention/watermark decision.

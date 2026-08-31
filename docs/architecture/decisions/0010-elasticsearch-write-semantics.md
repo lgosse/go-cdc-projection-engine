@@ -1,20 +1,28 @@
 ---
-type: Architecture Review Topic
-title: Elasticsearch writes
-description: Defines atomic update, fencing, bulk, and dual-write behavior.
-tags: [runtime, elasticsearch, bulk, idempotency]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0010: Elasticsearch write semantics"
+description: Elasticsearch mutations are versioned, source-fenced, idempotent bulk operations with explicit dual-write completion.
+tags: [architecture, adr, elasticsearch, writes, idempotency, bulk]
 status: accepted
 decision_id: ADR-0010
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Every pinned active write target must succeed or receive an explicitly terminal disposition before source progress advances.
   - Event-specific permanent Elasticsearch failures go to the durable DLQ; infrastructure-wide failures remain retryable and block progress as required.
   - MongoDB remains authoritative for fences; any Elasticsearch tombstone or metadata is derived and rebuildable.
+  - Painless scripts are generated and versioned from validated manifests; Bloblang remains the business-transformation authority.
 ---
 
-# Elasticsearch writes
+# ADR-0010: Elasticsearch write semantics
+
+## Context
+
+The projection schema requires explicit versioned mappings, while identity,
+ordering, transformation, and deletion decisions require source-fenced,
+idempotent updates. Kafka delivery is at-least-once and blue/green migration may
+require several active Elasticsearch targets at once. Elasticsearch bulk
+responses are itemized, so a request can partially succeed.
 
 ## Decision
 
@@ -46,18 +54,6 @@ idempotency.
 For root deletion, Elasticsearch may retain a hidden, non-searchable derived
 tombstone or fence marker for the fencing horizon. MongoDB remains authoritative
 for the deletion fence, and the derived marker must be rebuildable.
-
-## Pros
-
-- Handles duplicate and stale deliveries without read-before-write races.
-- Item-level inspection contains mapping and document-specific failures.
-- A pinned target set avoids intra-batch migration ambiguity.
-
-## Cons and risks
-
-- Generated scripts and nested-array scans may be expensive and hard to audit.
-- Dual-write success can diverge across indices.
-- `retry_on_conflict` does not replace correct idempotency or fencing.
 
 ## Alternatives considered
 
@@ -98,7 +94,7 @@ for the deletion fence, and the derived marker must be rebuildable.
 - A stale update cannot recreate a root after deletion while the derived marker
   is retained, and MongoDB remains sufficient to rebuild that marker.
 
-## Review trigger
+## Review triggers
 
 Revisit if dual-write latency or failure rates make partition progress unsafe,
 if generated scripts exceed request or compilation budgets, or if the runtime
@@ -106,15 +102,12 @@ must support a sink without equivalent fenced mutation semantics.
 
 ## Related concepts
 
+- [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [Projection schema](../02-contracts/projection-schema.md)
 - [Identity, time, and ordering](../02-contracts/identity-time-ordering.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
 - [Transformation contract](../02-contracts/transformation-contract.md)
-- [Offsets and delivery semantics](offsets-and-delivery.md)
-- [Backpressure, retry, and DLQ](backpressure-retry-dlq.md)
+- [Durable state ownership](../01-system-context/durable-state-ownership.md)
+- [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
+- [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Blue/green migration](../04-data-lifecycle/blue-green-migration.md)
-
-## Follow-up questions
-
-- What exact tombstone representation and retention cleanup policy are required?
-- Which operator authorization permits a terminal disposition for a failed target?

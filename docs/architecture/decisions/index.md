@@ -20,6 +20,18 @@ Accepted decisions:
 - [ADR-0008: Deletion and replay semantics](0008-deletion-and-replay-semantics.md) -
   Deletes are first-class fenced events with durable root and child deletion
   custody.
+- [ADR-0009: Projection schema ownership](0009-projection-schema-ownership.md) -
+  Manifests own explicit versioned mappings while MongoDB remains authoritative
+  for engine metadata.
+- [ADR-0010: Elasticsearch write semantics](0010-elasticsearch-write-semantics.md) -
+  Bulk mutations are versioned, source-fenced, idempotent, and explicitly
+  complete across pinned dual-write targets.
+- [ADR-0011: Kafka offset and delivery semantics](0011-kafka-offset-and-delivery-semantics.md) -
+  Commits use at-least-once, highest-contiguous-completion semantics with
+  durable terminal dispositions.
+- [ADR-0012: Backpressure, retry, and DLQ policy](0012-backpressure-retry-dlq-policy.md) -
+  Bounded queues, mode-specific retries, scoped blocking, and protected DLQ
+  custody contain failures without data loss.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

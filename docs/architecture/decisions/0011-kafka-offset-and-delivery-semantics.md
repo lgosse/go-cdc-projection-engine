@@ -1,20 +1,26 @@
 ---
-type: Architecture Review Topic
-title: Offsets and delivery semantics
-description: Defines partition-contiguous Kafka progress and crash recovery.
-tags: [runtime, kafka, offsets, delivery]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0011: Kafka offset and delivery semantics"
+description: Kafka commits use at-least-once, highest-contiguous-completion semantics with durable terminal dispositions.
+tags: [architecture, adr, kafka, offsets, delivery, dlq]
 status: accepted
 decision_id: ADR-0011
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Kafka commits use at-least-once, highest-contiguous-completion semantics per topic partition.
   - Durable DLQ acknowledgment is terminal completion; operator skips are distinct, authorized, and audited.
   - Rebalance draining uses a bounded configurable deadline and cannot commit after partition ownership is revoked.
 ---
 
-# Offsets and delivery semantics
+# ADR-0011: Kafka offset and delivery semantics
+
+## Context
+
+Kafka delivery is at-least-once and is not transactionally coupled to
+Elasticsearch or the engine-owned MongoDB metadata store. Batches can complete
+out of order, Elasticsearch bulk requests can partially fail, and coalescing can
+map several consumed records to one projection mutation.
 
 ## Decision
 
@@ -43,18 +49,6 @@ During rebalance, stop fetching the revoked partition and drain in-flight work
 within a bounded, configurable deadline. Commit only completed contiguous
 offsets while ownership is still valid; after revocation, the previous owner
 must not commit that partition.
-
-## Pros
-
-- Correctly handles out-of-order completion and partial bulk failures.
-- Makes crash behavior explicit and testable.
-- Avoids claiming exactly-once semantics across Kafka and Elasticsearch.
-
-## Cons and risks
-
-- One blocked record holds later offsets in its partition.
-- Coalescing several source records into one write complicates completion mapping.
-- A MongoDB DLQ adds another non-transactional durability boundary.
 
 ## Alternatives considered
 
@@ -93,7 +87,7 @@ must not commit that partition.
 - Operator skips are authorized, audited, distinct from poison-event DLQ, and
   replay-safe.
 
-## Review trigger
+## Review triggers
 
 Revisit if partition blocking violates recovery objectives, if coalescing cannot
 reliably map outcomes to offsets, or if a future sink provides a genuine
@@ -101,13 +95,9 @@ cross-system transaction boundary.
 
 ## Related concepts
 
-- [Elasticsearch writes](elasticsearch-writes.md)
-- [Backpressure, retry, and DLQ](backpressure-retry-dlq.md)
-- [Stream pipeline](stream-pipeline.md)
+- [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
+- [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
+- [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
+- [Stream pipeline](../03-runtime/stream-pipeline.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
-
-## Follow-up questions
-
-- What default drain deadline and retry budgets meet the recovery objective?
-- What exact unique-key and retention policy should the DLQ metadata use?
