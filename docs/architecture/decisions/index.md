@@ -79,6 +79,19 @@ Accepted decisions:
 - [ADR-0027: Health and diagnostics](0027-health-and-diagnostics.md) - Liveness
   is local-only, readiness is stable and scoped, and authenticated diagnostics
   expose authoritative projection state with timestamps.
+- [ADR-0028: Modes and configuration](0028-modes-and-configuration.md) -
+  Mode-specific executables share a release line, initially ship in one image,
+  and run as explicit Kubernetes workloads with validated immutable
+  configuration.
+- [ADR-0029: Deployment and orchestration](0029-deployment-and-orchestration.md) -
+  Kubernetes schedules lifecycle-specific workloads while MongoDB durably
+  coordinates migrations, checkpoints, leases, and fencing.
+- [ADR-0030: Runbooks and intervention](0030-runbooks-and-intervention.md) -
+  Production operation requires indexed, exercised runbooks with explicit
+  automation boundaries and audited intervention.
+- [ADR-0031: Ownership and governance](0031-ownership-and-governance.md) -
+  A small-team model assigns back-end, lead, DevOps, and DPO responsibilities
+  with risk-based review and explicit escalation paths.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

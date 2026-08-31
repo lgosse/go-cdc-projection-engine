@@ -63,3 +63,15 @@
 - **Decision**: Accepted ADR-0027 for local liveness, stable scoped readiness,
   separate search/ingestion/recovery status, and authenticated authoritative
   diagnostics.
+- **Decision**: Accepted ADR-0028 for separate mode-specific executables built
+  from shared libraries, initially packaged in one image, and run as explicit
+  Kubernetes workloads with validated immutable configuration.
+- **Decision**: Accepted ADR-0029 for lifecycle-specific Kubernetes workloads,
+  durable MongoDB migration coordination, graceful stream rollouts, and an
+  initially deferred permanent migration controller.
+- **Decision**: Accepted ADR-0030 for indexed and exercised runbooks, bounded
+  automatic recovery, explicit operator intervention, role-based ownership, and
+  auditable operational evidence.
+- **Decision**: Accepted ADR-0031 for a small-team ownership model: back-end
+  ownership, lead accountability, DevOps infrastructure responsibility, DPO
+  privacy authority, and risk-based review.
