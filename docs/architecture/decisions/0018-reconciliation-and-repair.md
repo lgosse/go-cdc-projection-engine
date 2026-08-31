@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Reconciliation and repair
-description: Defines authoritative comparison, sampling, drift classification, and repair safety.
-tags: [lifecycle, audit, drift, repair]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0018: Reconciliation and repair"
+description: Reconciliation compares MongoDB-derived canonical projections with pinned Elasticsearch targets and repairs only through the normal fenced write path.
+tags: [architecture, adr, reconciliation, repair, audit, drift]
 status: accepted
 decision_id: ADR-0018
 accepted_on: 2026-08-31
@@ -17,45 +14,39 @@ conditions:
   - Redis is not authoritative for reconciliation correctness, and ambiguous or systemic drift requires operator review.
 ---
 
-# Reconciliation and repair
+# ADR-0018: Reconciliation and repair
+
+## Context
+
+Live at-least-once processing, independent MongoDB sources, Redis-derived
+lookups, and blue-green targets can leave a projection temporarily or
+permanently divergent from source truth. The design draft proposes sampled
+canonical hashing and repair, but direct replacement could bypass source fencing
+or mistake secondary lag for a confirmed delete.
 
 ## Decision
 
 Reconciliation compares a canonical projection assembled from MongoDB source-of-
-truth data with a pinned physical Elasticsearch target. The run records a
-source-scoped boundary or watermark and its exact manifest and transformation
-versions. Redis may be audited separately, but is never authoritative for the
-expected document.
+truth data with a pinned physical Elasticsearch target. Each run records a
+source-scoped boundary or watermark and the exact manifest and transformation
+versions used. Redis may be audited separately, but is never authoritative for
+the expected document.
 
-Use layered detection: risk-based samples for recently changed, migration-touched,
-previously repaired, high-value, or error-prone entities; random samples for
-broad coverage; and full scans when validating a migration or investigating
-systemic drift. Normalize non-semantic fields with stable serialization, use a
-canonical hash as the fast comparison, and retain a bounded field-level diff for
-diagnosis. Check missing documents, unexpected documents after deletion, field
-mismatches, nested-child membership, and fence mismatches.
+Use layered detection: risk-based samples for recently changed,
+migration-touched, previously repaired, high-value, or error-prone entities;
+random samples for broad coverage; and full scans when validating a migration or
+investigating systemic drift. Normalize non-semantic fields with stable
+serialization, use a canonical hash as the fast comparison, and retain a
+bounded field-level diff for diagnosis. Check missing documents, unexpected
+documents after deletion, field mismatches, nested-child membership, and fence
+mismatches.
 
 Classify findings as expected transient, deterministic repairable,
 infrastructure, or ambiguous/systemic. Recheck transient lag or cross-source
-inconsistency after a bounded delay. Repairs remain dry-run by default; enabled
+inconsistency after a bounded delay. Repairs are dry-run by default; enabled
 repairs are deduplicated, rate-limited, auditable, and pass through the normal
 identity, transformation, deletion, fencing, and idempotent write path. Never
 replace a document through an unfenced direct index operation.
-
-## Pros
-
-- Detects silent data loss and transformation divergence.
-- Field-level classification is more actionable than hash mismatch alone.
-- Pinned targets avoid alias changes during an audit.
-- Reusing normal fenced writes prevents reconciliation from creating a second
-  correctness model.
-
-## Cons and risks
-
-- Cross-database reads may observe inconsistent moments.
-- Sampling cannot prove the absence of drift.
-- Automated repair can mask systemic faults or overwrite newer data.
-- Canonical assembly and full scans consume MongoDB and Elasticsearch capacity.
 
 ## Alternatives considered
 
@@ -90,7 +81,7 @@ replace a document through an unfenced direct index operation.
 - Migration audits detect target divergence before alias cutover.
 - Redis loss or staleness does not change MongoDB-derived reconciliation truth.
 
-## Review trigger
+## Review triggers
 
 Revisit if sample coverage misses incidents, full scans exceed capacity or
 retention windows, source watermarks cannot distinguish transient from durable
@@ -98,19 +89,12 @@ drift, or repair traffic impacts live ingestion.
 
 ## Related concepts
 
-- [Bootstrap consistency](bootstrap-consistency.md)
-- [Schema evolution](schema-evolution.md)
-- [Blue-green migration](blue-green-migration.md)
+- [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
+- [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
+- [Schema evolution](../04-data-lifecycle/schema-evolution.md)
+- [Blue-green migration](../04-data-lifecycle/blue-green-migration.md)
 - [Projection schema](../02-contracts/projection-schema.md)
 - [Transformation contract](../02-contracts/transformation-contract.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
-
-## Follow-up questions
-
-- What sampling strategy meets confidence and cost goals?
-- What delay and evidence classify a difference as transient?
-- Which drift classes may auto-repair, and who may enable it?
-- What source-boundary evidence confirms deletes?
-- What retention and reporting format are required for audit and repair history?

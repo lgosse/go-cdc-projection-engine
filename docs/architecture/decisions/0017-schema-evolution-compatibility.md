@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Schema evolution
-description: Defines compatibility classes for manifests and Elasticsearch mappings.
-tags: [lifecycle, schema, compatibility, elasticsearch]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0017: Schema evolution compatibility"
+description: Projection changes use conservative semantic classification, with only allow-listed additive mappings applied in place and meaning-changing changes migrated blue-green.
+tags: [architecture, adr, schema, compatibility, elasticsearch, migration]
 status: accepted
 decision_id: ADR-0017
 accepted_on: 2026-08-31
@@ -17,7 +14,16 @@ conditions:
   - Unknown or ambiguous changes block affected consumption until resolved.
 ---
 
-# Schema evolution
+# ADR-0017: Schema evolution compatibility
+
+## Context
+
+Projection mappings are explicitly owned by versioned manifests and production
+schemas are strict. Elasticsearch permits some mapping additions in place, but
+field types, analyzers, nested semantics, and index-creation settings can require
+index recreation. A transformation can change indexed meaning even when its
+mapping is unchanged. ADR-0016 provides the durable zero-downtime migration and
+rollback lifecycle for a new physical target.
 
 ## Decision
 
@@ -28,8 +34,8 @@ Classify manifest and projection changes semantically into four classes:
 2. **Safe additive** changes add only explicitly allow-listed fields with
    compatible types. They may update the active mapping after validation, and
    older documents and consumers must tolerate the field being absent.
-3. **Reindex-required** changes use a new manifest/projection version and the
-   blue-green migration lifecycle. This includes field type changes,
+3. **Reindex-required** changes use a new manifest/projection version and
+   ADR-0016's blue-green migration. This includes field type changes,
    analyzers, normalizers or index-creation settings, `object`/`nested` changes,
    renames, removals, changed null/default/coercion semantics, changed
    transformation meaning, and identity or relationship changes.
@@ -42,20 +48,6 @@ not raw YAML or JSON bytes. Pin the exact manifest and transformation versions
 to each physical target. Never silently change an existing field's meaning or
 remove a consumer-visible field.
 
-## Pros
-
-- Avoids fragile byte-level mapping comparisons.
-- Makes automatic mutation conservative and reviewable.
-- Couples transformation semantics to schema versioning.
-
-## Cons and risks
-
-- Compatibility depends on consumer query behavior, not only ES rules.
-- Some settings are dynamic while others require index recreation.
-- Conservative classification causes more migrations.
-- Consumer compatibility still requires an explicit contract; Elasticsearch
-  compatibility alone is insufficient.
-
 ## Alternatives considered
 
 1. Require blue-green migration for every persisted change. This is simpler and
@@ -65,7 +57,7 @@ remove a consumer-visible field.
    migration cost but cannot safely handle analyzer, semantic, consumer, or
    transformation changes.
 3. Rely on dynamic mappings and implicit compatibility. This hides contract
-   drift and conflicts with the strict production schema decision.
+   drift and conflicts with ADR-0009's strict production schema.
 
 ## Consequences
 
@@ -75,8 +67,8 @@ remove a consumer-visible field.
 - Additive updates need an approval policy and consumer tolerance for absent
   fields.
 - Renames and removals require an explicit deprecation or migration plan.
-- Conservative classification increases the number of blue-green migrations,
-  storage use, and operational review.
+- Conservative classification increases blue-green migrations, storage use, and
+  operational review.
 
 ## Validation
 
@@ -90,7 +82,7 @@ remove a consumer-visible field.
 - Each target records the exact manifest and transformation versions used to
   produce it.
 
-## Review trigger
+## Review triggers
 
 Revisit if consumer compatibility requirements differ from the allow-list, if
 Elasticsearch introduces a mapping/settings capability with different update
@@ -98,17 +90,10 @@ semantics, or if migration cost threatens capacity or rollout objectives.
 
 ## Related concepts
 
+- [Schema evolution](../04-data-lifecycle/schema-evolution.md)
 - [Projection schema](../02-contracts/projection-schema.md)
 - [Manifest contract](../02-contracts/manifest-contract.md)
 - [Transformation contract](../02-contracts/transformation-contract.md)
-- [Blue-green migration](blue-green-migration.md)
-- [Bootstrap consistency](bootstrap-consistency.md)
+- [Blue-green migration](../04-data-lifecycle/blue-green-migration.md)
+- [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
-
-## Follow-up questions
-
-- Which roles approve automatic additive updates versus migrations?
-- Which exact mapping additions belong to the safe allow-list?
-- Must consumer compatibility be declared per field?
-- Are manifest-schema, projection-schema, and transformation versions separate?
-- What deprecation period is required for renamed or removed fields?

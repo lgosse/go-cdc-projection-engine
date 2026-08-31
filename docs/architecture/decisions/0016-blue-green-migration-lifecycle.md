@@ -1,13 +1,12 @@
 ---
-type: Architecture Review Topic
-title: Blue-green migration
-description: Defines a recoverable state machine for provisioning, dual-write, validation, and cutover.
-tags: [lifecycle, migration, dual-write, elasticsearch]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0016: Blue-green migration lifecycle"
+description: Migrations use durable fenced state, live dual-write, verified alias cutover, rollback windows, and approved retirement.
+tags: [architecture, adr, migration, blue-green, elasticsearch, rollback]
 status: accepted
 decision_id: ADR-0016
+accepted_on: 2026-08-31
+owner: TBD
 conditions:
   - Migration state, leases, fencing tokens, target sets, and operator actions are durable in engine-owned MongoDB.
   - Live dual-write starts before bootstrap and remains active through the rollback window.
@@ -15,7 +14,14 @@ conditions:
   - Old targets are never retired automatically and remain protected by retention and rollback checks.
 ---
 
-# Blue-green migration
+# ADR-0016: Blue-green migration lifecycle
+
+## Context
+
+Projection mappings are explicitly versioned and bootstrap must run without
+stopping live traffic. Redis is derived, Elasticsearch writes are fenced and
+idempotent, and the engine needs a recoverable way to coordinate provisioning,
+bootstrap, alias movement, rollback, and retirement.
 
 ## Decision
 
@@ -46,20 +52,6 @@ kept current or its missed interval is replayed.
 Retire the old target only after the rollback window, verification evidence,
 backup/rebuild evidence, alias checks, and explicit authorized approval. Never
 delete it automatically at cutover.
-
-## Pros
-
-- Supports retry and operator inspection after partial failures.
-- Keeps rollback available through a retention window.
-- Explicit worker acknowledgment closes the race before bootstrap.
-
-## Cons and risks
-
-- Adds a control-plane component or stricter deployment orchestration.
-- Long dual-write windows increase load and divergence surface.
-- Rollback after new-only writes may require reverse migration.
-- A failed old-target write during the rollback window can remove the rollback
-  guarantee unless it is repaired or replayed.
 
 ## Alternatives considered
 
@@ -93,7 +85,7 @@ delete it automatically at cutover.
   retention and rebuild evidence.
 - Concurrent migrations for the same projection are fenced safely.
 
-## Review trigger
+## Review triggers
 
 Revisit if dual-write cost violates capacity objectives, rollback detection takes
 longer than the retention window, or a sink/index change cannot support equivalent
@@ -101,17 +93,12 @@ fencing and verification.
 
 ## Related concepts
 
-- [Bootstrap consistency](bootstrap-consistency.md)
+- [Blue-green migration](../04-data-lifecycle/blue-green-migration.md)
+- [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
 - [Projection schema](../02-contracts/projection-schema.md)
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
 - [Redis authority boundary](../01-system-context/redis-authority-boundary.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
-- [Reconciliation and repair](reconciliation-and-repair.md)
-- [Disaster recovery](disaster-recovery.md)
-
-## Follow-up questions
-
-- What rollback-window duration matches detection and remediation objectives?
-- Which roles may approve cutover, rollback, forced abort, and retirement?
-- What exact retention and backup evidence is required before retirement?
+- [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
+- [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)

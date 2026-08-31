@@ -1,8 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Disaster recovery
-description: Defines restoration paths for lost caches, indices, checkpoints, and Kafka history.
-tags: [lifecycle, recovery, resilience]
+type: Architecture Decision Record
+title: "ADR-0019: Disaster recovery"
+description: Recovery uses authority-aware failure procedures, backs up engine metadata, and rebuilds Redis and Elasticsearch from MongoDB plus retained CDC.
+tags: [architecture, adr, disaster-recovery, resilience, backup, restore]
 status: accepted
 decision_id: ADR-0019
 accepted_on: 2026-08-31
@@ -14,7 +14,15 @@ conditions:
   - Recovery exercises and per-state RPO/RTO objectives remain required follow-up evidence.
 ---
 
-# Disaster recovery
+# ADR-0019: Disaster recovery
+
+## Context
+
+Authority is split across Kafka offsets, engine-owned MongoDB metadata, domain
+MongoDB source state, Redis-derived lookups, and Elasticsearch projections. A
+single restore procedure cannot safely treat these stores as one transaction.
+Recovery must preserve deletion fences, DLQ custody, migration ownership, and
+offset semantics while allowing derived projections to be rebuilt.
 
 ## Decision
 
@@ -41,20 +49,6 @@ state, cache generations, and projection convergence have been verified. Define
 separate RPO/RTO objectives for metadata and DLQ custody, live processing, search
 freshness, and derived-state rebuilds; do not collapse them into one global
 number.
-
-## Pros
-
-- Tests the claim that the engine and its projections are rebuildable.
-- Exposes hidden durable state before implementation.
-- Aligns backup cost with actual authority.
-
-## Cons and risks
-
-- Full rebuild time may exceed acceptable recovery objectives.
-- Cross-service source availability can dominate restoration time.
-- Recovery procedures require regular exercises to stay credible.
-- Metadata backup and point-in-time recovery become mandatory operational
-  responsibilities.
 
 ## Alternatives considered
 
@@ -90,7 +84,7 @@ number.
   silent data loss.
 - Recovery exercises meet the agreed per-state RPO/RTO objectives.
 
-## Review trigger
+## Review triggers
 
 Revisit if source or Kafka retention changes, metadata restore cannot meet the
 required objectives, regional failover introduces split writers, or rebuilds
@@ -98,20 +92,11 @@ impact search freshness or live-ingestion capacity.
 
 ## Related concepts
 
+- [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
 - [Durable state ownership](../01-system-context/durable-state-ownership.md)
-- [Bootstrap consistency](bootstrap-consistency.md)
-- [Reconciliation and repair](reconciliation-and-repair.md)
-- [Blue-green migration](blue-green-migration.md)
+- [Bootstrap consistency](../04-data-lifecycle/bootstrap-consistency.md)
+- [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
+- [Blue-green migration](../04-data-lifecycle/blue-green-migration.md)
 - [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
-
-## Follow-up questions
-
-- What are recovery time and recovery point objectives per mode?
-- How long must Kafka retention exceed the maximum outage and recovery window?
-- What backup/PITR evidence makes metadata recovery valid?
-- Who authorizes recovery when deletion fences or DLQ history cannot be
-  restored?
-- What regional failover procedure prevents two projector deployments from
-  writing concurrently?

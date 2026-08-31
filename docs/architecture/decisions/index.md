@@ -41,6 +41,19 @@ Accepted decisions:
 - [ADR-0015: Bootstrap consistency and handoff](0015-bootstrap-consistency-and-handoff.md) -
   Zero-downtime bootstrap uses source cluster-time boundaries, live dual-write,
   overlap replay, and resumable checkpoints.
+- [ADR-0016: Blue-green migration lifecycle](0016-blue-green-migration-lifecycle.md) -
+  Migrations use durable fenced state, live dual-write, verified alias cutover,
+  rollback windows, and approved retirement.
+- [ADR-0017: Schema evolution compatibility](0017-schema-evolution-compatibility.md) -
+  Projection changes use conservative semantic classification, with only
+  allow-listed additive mappings applied in place and meaning-changing changes
+  migrated blue-green.
+- [ADR-0018: Reconciliation and repair](0018-reconciliation-and-repair.md) -
+  Reconciliation compares MongoDB-derived canonical projections with pinned
+  Elasticsearch targets and repairs only through the normal fenced write path.
+- [ADR-0019: Disaster recovery](0019-disaster-recovery.md) - Recovery uses
+  authority-aware failure procedures, backs up engine metadata, and rebuilds
+  Redis and Elasticsearch from MongoDB plus retained CDC.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

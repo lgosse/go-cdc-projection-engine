@@ -25,3 +25,15 @@
 - **Decision**: Accepted ADR-0015 for zero-downtime bootstrap using source
   cluster-time boundaries, live dual-write, overlap replay, delete reconciliation,
   and resumable chunk checkpoints.
+- **Decision**: Accepted ADR-0016 for durable fenced migration state, live
+  dual-write rollback windows, explicit verification gates, and approved
+  retirement.
+- **Decision**: Accepted ADR-0017 for conservative semantic schema evolution,
+  allow-listed additive in-place updates, and blue-green migration for
+  meaning-changing or ambiguous changes.
+- **Decision**: Accepted ADR-0018 for pinned-target canonical reconciliation,
+  layered drift detection, and opt-in repairs through the normal fenced write
+  path.
+- **Decision**: Accepted ADR-0019 for authority-aware disaster recovery,
+  metadata backup/PITR, derived-state rebuilds, and fail-closed handling of
+  missing history or deletion evidence.
