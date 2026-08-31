@@ -19,12 +19,16 @@ projection persistence, and recovery.
 ## Draft proposal
 
 - The [Redis authority boundary](redis-authority-boundary.md) is accepted; the
-  exact durable owner for projector state remains open.
+  exact durable ownership is resolved by [ADR-0003](../decisions/0003-durable-state-ownership.md).
 - MongoDB is the business source of truth and authoritative rebuild source.
 - Kafka is the durable live-change log within a declared retention window.
 - Redis accelerates lookups and reverse relations but is not the sole durable
   owner of migration or progress state.
 - Elasticsearch stores disposable, versioned read models exposed through aliases.
+
+The accepted ownership matrix keeps Kafka offsets authoritative for the consumer
+cursor and assigns migration, control-plane, and DLQ state to an engine-owned
+MongoDB metadata store. Redis and Elasticsearch remain rebuildable derived state.
 
 ## Pros
 
@@ -40,6 +44,5 @@ projection persistence, and recovery.
 
 ## Questions to stamp
 
-- Where does durable migration state live?
 - Which reverse relations are caches versus required indexes?
 - What happens when Kafka and MongoDB temporarily disagree?

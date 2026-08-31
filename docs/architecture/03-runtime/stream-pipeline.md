@@ -6,7 +6,7 @@ tags: [runtime, streaming, batching, transformations]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Stream pipeline

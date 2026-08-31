@@ -5,3 +5,5 @@
 - **Initialization**: Split the source drafts into an OKF v0.2 review bundle.
 - **Creation**: Added provisional proposals, trade-offs, missing topics, and an
   empty decision register.
+- **Decision**: Accepted ADR-0008 for durable, source-fenced root and child
+  deletion semantics across replay, bootstrap, and reconciliation.

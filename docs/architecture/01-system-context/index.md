@@ -8,6 +8,8 @@ Stamp the engine's purpose and promises before selecting mechanisms.
   input boundary.
 - [Redis authority boundary](redis-authority-boundary.md) - Accepted
   non-authoritative cache boundary.
+- [Durable state ownership](durable-state-ownership.md) - Accepted ownership
+  matrix for offsets, control-plane state, and DLQ custody.
 - [System guarantees](system-guarantees.md) - The semantics the engine promises
   to consumers and operators.
 - [Data-store responsibilities](data-store-responsibilities.md) - Canonical role

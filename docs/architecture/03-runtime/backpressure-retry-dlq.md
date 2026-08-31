@@ -6,7 +6,7 @@ tags: [runtime, retry, backpressure, dlq]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Backpressure, retry, and DLQ

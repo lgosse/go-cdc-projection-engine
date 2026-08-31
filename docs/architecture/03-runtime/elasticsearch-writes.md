@@ -6,7 +6,7 @@ tags: [runtime, elasticsearch, bulk, idempotency]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Elasticsearch writes

@@ -16,7 +16,7 @@ The review workflow is encoded in the repository-local
 - [Review method](review-method.md) - Status vocabulary, stamping criteria, and
   the template used by every architecture concept.
 - [Decision register](decisions/index.md) - Accepted decisions and the ADR
-  template; currently empty by design.
+  template.
 - [Source conflicts](source-conflicts.md) - Contradictions that must be resolved
   before implementation.
 
