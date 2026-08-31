@@ -37,3 +37,17 @@
 - **Decision**: Accepted ADR-0019 for authority-aware disaster recovery,
   metadata backup/PITR, derived-state rebuilds, and fail-closed handling of
   missing history or deletion evidence.
+- **Decision**: Accepted ADR-0020 for workload-specific performance objectives,
+  hard safety budgets, effective mutation accounting, and benchmark-gated
+  capacity planning.
+- **Decision**: Accepted ADR-0021 for separate search/ingestion/recovery health,
+  workload-group consumer isolation, scoped degradation, and multi-signal
+  scaling.
+- **Decision**: Accepted ADR-0022 with conditions for explicit field
+  classifications, least privilege, environment-delivered secrets, source-
+  driven anonymization, TTL-based derived-data expiry, and audited single-
+  operator actions; live key rotation and fence-identifier treatment remain
+  future topics.
+- **Decision**: Accepted ADR-0023 for a capability-tested dependency matrix,
+  pinned client/runtime versions, fail-closed readiness checks, and guarded
+  rolling upgrades.

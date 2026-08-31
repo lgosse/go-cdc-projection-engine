@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Availability and scaling
-description: Defines availability objectives, degradation modes, and scaling behavior.
-tags: [quality, availability, scaling, kubernetes]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0021: Availability and scaling"
+description: Search, ingestion, and recovery availability are separated; workload-group consumers degrade by scope and scale on sustained multi-signal pressure.
+tags: [architecture, adr, availability, scaling, kafka, kubernetes]
 status: accepted
 decision_id: ADR-0021
 accepted_on: 2026-08-31
@@ -18,7 +15,15 @@ conditions:
   - Dependency failures pause or block the smallest safe scope after bounded retry; ordinary outages do not cause crash loops.
 ---
 
-# Availability and scaling
+# ADR-0021: Availability and scaling
+
+## Context
+
+Search reads, Kafka progress, and recovery have different failure and
+freshness characteristics. A projector outage need not make an existing
+Elasticsearch target unreadable, while a dependency outage can make it unsafe to
+advance offsets. Replica count and Kafka consumer topology also affect whether a
+projection failure is isolated or coupled to unrelated work.
 
 ## Decision
 
@@ -51,21 +56,6 @@ corrupted process invariants may terminate the process. Ordinary dependency
 outages use bounded retry and scoped pause rather than crash loops. Readiness
 exposes process/liveness, search-read, ingestion, and degraded-projection state
 separately.
-
-## Pros
-
-- Read availability does not depend on live ingestion.
-- Cooperative scaling can reduce partition movement.
-- Projection isolation limits the blast radius of bad configuration.
-- Separating read and ingestion health makes stale-but-available search visible.
-
-## Cons and risks
-
-- More replicas do not help beyond available partitions.
-- HPA changes can cause the rebalances they are trying to resolve.
-- Per-projection degradation complicates readiness and alerting.
-- Separate consumer groups improve isolation at the cost of duplicate Kafka reads
-  and greater operational complexity.
 
 ## Alternatives considered
 
@@ -100,7 +90,7 @@ separately.
 - Dependency outages do not create crash loops or DLQ floods.
 - Recovery resumes within the performance and disaster-recovery objectives.
 
-## Review trigger
+## Review triggers
 
 Revisit if search freshness or ingestion objectives are missed, consumer-group
 coupling blocks recovery, replica cost exceeds capacity, or dependency failure
@@ -108,17 +98,10 @@ scopes cannot be isolated safely.
 
 ## Related concepts
 
-- [Performance and capacity](performance-and-capacity.md)
+- [Availability and scaling](../05-quality-attributes/availability-and-scaling.md)
+- [Performance and capacity](../05-quality-attributes/performance-and-capacity.md)
 - [Offsets and delivery semantics](../03-runtime/offsets-and-delivery.md)
 - [Backpressure, retry, and DLQ](../03-runtime/backpressure-retry-dlq.md)
 - [Stream pipeline](../03-runtime/stream-pipeline.md)
 - [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
 - [Deployment and orchestration](../07-operations/deployment-and-orchestration.md)
-
-## Follow-up questions
-
-- What exact availability percentages and outage intervention thresholds should
-  complement the freshness and recovery targets?
-- What default cooldown and stabilization windows fit each workload group?
-- When does strict projection isolation justify a separate consumer group?
-- What disruption budget and zone-spreading rules are required for production?

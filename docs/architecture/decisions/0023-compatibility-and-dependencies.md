@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Compatibility and dependencies
-description: Defines supported platform versions and upgrade responsibility.
-tags: [quality, compatibility, dependencies]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0023: Compatibility and dependencies"
+description: Supported dependency combinations are capability-tested, pinned per release, and fail readiness when required behavior is unavailable.
+tags: [architecture, adr, compatibility, dependencies, upgrades, capabilities]
 status: accepted
 decision_id: ADR-0023
 accepted_on: 2026-08-31
@@ -18,7 +15,15 @@ conditions:
   - Exact platform inventories, support windows, upgrade cadence, and workload-level failure scopes remain operational follow-ups.
 ---
 
-# Compatibility and dependencies
+# ADR-0023: Compatibility and dependencies
+
+## Context
+
+The engine depends on specific behavior from MongoDB change streams, Kafka
+consumer assignment, Redis expiry and generation operations, Elasticsearch
+aliases/mappings/scripts, Kubernetes lifecycle primitives, the embedded Bloblang
+runtime, and OpenTelemetry telemetry. Nominal version strings cannot prove that
+these capabilities are available in a particular distribution or configuration.
 
 ## Decision
 
@@ -46,21 +51,6 @@ manifest and durable metadata protocol. Otherwise drain the old workers or use
 blue-green deployment. Existing physical indices and migration state are never
 silently downgraded.
 
-## Pros
-
-- Prevents hidden reliance on unavailable APIs or semantics.
-- Makes dependency upgrades planned architecture work.
-- Capability checks produce clearer startup failures.
-- Makes platform drift visible before it can alter correctness guarantees.
-
-## Cons and risks
-
-- A multi-service integration matrix is expensive.
-- Narrow support windows may conflict with platform reality.
-- Server distributions can differ despite matching version numbers.
-- Pinning clients and runtimes makes upgrades deliberate and requires release
-  maintenance.
-
 ## Alternatives considered
 
 1. Support one exact version of every dependency and require coordinated
@@ -79,7 +69,8 @@ silently downgraded.
 - Security patches can be applied within a pinned line; major upgrades require
   explicit compatibility testing.
 - Binary, manifest, and projection versions must be coordinated during rollout.
-- Unsupported capability combinations fail closed rather than silently degrading.
+- Unsupported capability combinations fail closed rather than silently
+  degrading.
 
 ## Validation
 
@@ -89,7 +80,7 @@ silently downgraded.
 - Incompatible binary or manifest changes use drain or blue-green deployment.
 - Dependency failures produce actionable diagnostics and preserve telemetry.
 
-## Review trigger
+## Review triggers
 
 Revisit when target platform versions change, a dependency deprecates a required
 capability, the support window becomes too costly, or rolling compatibility
@@ -97,19 +88,11 @@ cannot preserve the durable metadata and projection contracts.
 
 ## Related concepts
 
+- [Compatibility and dependencies](../05-quality-attributes/compatibility-and-dependencies.md)
 - [Manifest contract](../02-contracts/manifest-contract.md)
 - [Transformation contract](../02-contracts/transformation-contract.md)
 - [Projection schema](../02-contracts/projection-schema.md)
 - [Blue-green migration](../04-data-lifecycle/blue-green-migration.md)
-- [Availability and scaling](availability-and-scaling.md)
+- [Availability and scaling](../05-quality-attributes/availability-and-scaling.md)
 - [Deployment and orchestration](../07-operations/deployment-and-orchestration.md)
 - [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
-
-## Follow-up questions
-
-- What versions exist in target environments?
-- Which clients and transformation runtime are acceptable dependencies?
-- What backward-compatibility promise does the engine itself offer?
-- What minimum support window and security-patch policy apply to each dependency?
-- Which dependency failures block one workload versus the whole engine?
-- Which binary/manifest combinations are safe for rolling deployment?

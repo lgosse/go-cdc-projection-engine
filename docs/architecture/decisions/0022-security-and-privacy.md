@@ -1,8 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Security and privacy
-description: Defines least privilege, secret handling, data minimization, and erasure behavior.
-tags: [quality, security, privacy, compliance]
+type: Architecture Decision Record
+title: "ADR-0022: Security and privacy"
+description: The engine uses explicit field classifications, least privilege, environment-delivered secrets, protected diagnostics, source-driven anonymization, and retention-aware derived data.
+tags: [architecture, adr, security, privacy, compliance, secrets]
 status: accepted
 decision_id: ADR-0022
 accepted_on: 2026-08-31
@@ -17,7 +17,14 @@ conditions:
   - Legal treatment of identifiers retained in deletion fences is explicitly deferred.
 ---
 
-# Security and privacy
+# ADR-0022: Security and privacy
+
+## Context
+
+The engine copies data across Kafka, Redis, Elasticsearch, engine-owned MongoDB
+metadata, logs, metrics, and DLQ custody. A generic cross-domain projector must
+limit both access and data replication while preserving replay, source-driven
+anonymization, deletion fencing, and operational diagnosis.
 
 ## Decision
 
@@ -53,21 +60,6 @@ fences cover the maximum correctness horizon, replayable DLQ payloads cover the
 replay horizon plus investigation time, and audit metadata may live longer.
 Exact durations remain an operational and compliance follow-up. The legal
 treatment of identifiers retained in fences is deferred.
-
-## Pros
-
-- Limits the blast radius of a generic cross-domain data engine.
-- Makes privacy deletion part of lifecycle correctness.
-- Reduces accidental sensitive-data leakage through diagnostics.
-- Makes source anonymization converge through the same tested data path.
-
-## Cons and risks
-
-- Fine-grained credentials and field policies increase operational overhead.
-- Redaction can make poison-event debugging harder.
-- Replicated projections expand the data inventory that must be governed.
-- Restart-based key rotation creates a short operational interruption until live
-  rotation is designed.
 
 ## Alternatives considered
 
@@ -106,7 +98,7 @@ treatment of identifiers retained in fences is deferred.
 - Worker restart rotation loads new environment-provided key material safely.
 - Privileged actions and protected-data access are attributable and auditable.
 
-## Review trigger
+## Review triggers
 
 Revisit if Restricted data becomes required in Redis or Elasticsearch, if source
 anonymization no longer covers authoritative privacy changes, if retention or
@@ -114,6 +106,7 @@ compliance rules change, or if restart-based key rotation threatens availability
 
 ## Related concepts
 
+- [Security and privacy](../05-quality-attributes/security-and-privacy.md)
 - [Manifest contract](../02-contracts/manifest-contract.md)
 - [CDC event envelope](../02-contracts/cdc-event-envelope.md)
 - [Deletion and replay](../02-contracts/deletion-and-replay.md)
@@ -122,11 +115,3 @@ compliance rules change, or if restart-based key rotation threatens availability
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
 - [Disaster recovery](../04-data-lifecycle/disaster-recovery.md)
 - [Reconciliation and repair](../04-data-lifecycle/reconciliation-and-repair.md)
-
-## Follow-up questions
-
-- What exact fields, if any, receive a future Restricted-field exception?
-- What calendar retention values satisfy operational and compliance requirements?
-- How should required reverse indexes handle privacy-driven expiry?
-- What is the legal treatment of identifiers retained in deletion fences?
-- When should operator permissions evolve into separated roles?

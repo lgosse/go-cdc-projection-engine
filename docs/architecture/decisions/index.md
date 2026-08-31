@@ -54,6 +54,19 @@ Accepted decisions:
 - [ADR-0019: Disaster recovery](0019-disaster-recovery.md) - Recovery uses
   authority-aware failure procedures, backs up engine metadata, and rebuilds
   Redis and Elasticsearch from MongoDB plus retained CDC.
+- [ADR-0020: Performance and capacity](0020-performance-and-capacity.md) -
+  Capacity uses workload-specific objectives, safety budgets, effective mutation
+  accounting, and benchmark validation.
+- [ADR-0021: Availability and scaling](0021-availability-and-scaling.md) -
+  Search, ingestion, and recovery availability are separated; workload-group
+  consumers degrade by scope and scale on sustained multi-signal pressure.
+- [ADR-0022: Security and privacy](0022-security-and-privacy.md) - The engine
+  uses explicit field classifications, least privilege, environment-delivered
+  secrets, protected diagnostics, source-driven anonymization, and
+  retention-aware derived data.
+- [ADR-0023: Compatibility and dependencies](0023-compatibility-and-dependencies.md) -
+  Supported dependency combinations are capability-tested, pinned per release,
+  and fail readiness when required behavior is unavailable.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.
