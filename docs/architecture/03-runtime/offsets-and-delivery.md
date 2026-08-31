@@ -6,7 +6,7 @@ tags: [runtime, kafka, offsets, delivery]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Offsets and delivery semantics

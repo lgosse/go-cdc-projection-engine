@@ -6,7 +6,7 @@ tags: [runtime, redis, cache, relationships]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Cache and reverse lookups

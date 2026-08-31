@@ -6,7 +6,7 @@ tags: [context, kafka, mongodb, redis, elasticsearch]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Data-store responsibilities
@@ -18,6 +18,8 @@ projection persistence, and recovery.
 
 ## Draft proposal
 
+- The [Redis authority boundary](redis-authority-boundary.md) is accepted; the
+  exact durable owner for projector state remains open.
 - MongoDB is the business source of truth and authoritative rebuild source.
 - Kafka is the durable live-change log within a declared retention window.
 - Redis accelerates lookups and reverse relations but is not the sole durable

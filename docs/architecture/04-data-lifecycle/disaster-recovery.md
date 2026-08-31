@@ -3,7 +3,7 @@ type: Architecture Review Topic
 title: Disaster recovery
 description: Defines restoration paths for lost caches, indices, checkpoints, and Kafka history.
 tags: [lifecycle, recovery, resilience]
-status: proposed
+status: in-review
 ---
 
 # Disaster recovery

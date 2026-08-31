@@ -8,7 +8,7 @@ sources:
     title: System design draft
   - resource: ../design/otel.md
     title: OpenTelemetry design draft
-status: proposed
+status: in-review
 ---
 
 # Source draft conflicts
@@ -20,10 +20,9 @@ pipeline behavior as authoritative.
 
 ## Draft proposal
 
-Treat Kafka as the only live event source and MongoDB as the bootstrap,
-reconciliation, and repair source of truth. Treat Elasticsearch as a disposable
-read-model store, Redis as operational state/cache only, and remove direct
-MongoDB change-stream and runtime fallback assumptions unless later accepted.
+The live-ingestion portion of this proposal is accepted in
+[ADR-0001](decisions/0001-live-ingestion-source.md). The remaining datastore,
+cache, transformation, and offset conflicts stay open.
 
 ## Pros
 
@@ -40,12 +39,14 @@ MongoDB change-stream and runtime fallback assumptions unless later accepted.
 
 ## Conflicts to resolve
 
-- Kafka topics in the system draft versus MongoDB change streams and resume
-  tokens in the telemetry draft.
+- **Resolved by [live ingestion source](01-system-context/live-ingestion-source.md):**
+  Kafka topics are the engine input; MongoDB change-stream capture and resume
+  tokens belong upstream.
 - "Zero cross-database point queries at runtime" versus cache-miss database
   fallbacks in the telemetry draft.
-- Redis described as non-persistent cache while also owning migration routing
-  state that must survive loss.
+- **Resolved by [Redis authority boundary](01-system-context/redis-authority-boundary.md):**
+  Redis is non-authoritative; required projector state must be durable or
+  reconstructible elsewhere. The exact durable owner remains open.
 - Transformations described as Go/Bloblang execution while a follow-up topic
   implies Bloblang-to-Painless translation.
 - Manual batch offset commits versus committing "remaining" records after
@@ -53,7 +54,6 @@ MongoDB change-stream and runtime fallback assumptions unless later accepted.
 
 ## Questions to stamp
 
-- Which statements above are intentional requirements and which are draft
-  residue?
-- Which component owns each durable checkpoint and control-plane state?
+- Which durable component owns each checkpoint and control-plane state?
 - What must happen when an upstream event is incomplete or malformed?
+- What is the cache-miss policy when the engine cannot query a foreign database?

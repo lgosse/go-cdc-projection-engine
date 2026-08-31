@@ -6,7 +6,7 @@ tags: [lifecycle, migration, dual-write, elasticsearch]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Blue-green migration

@@ -6,7 +6,7 @@ tags: [context, scope, boundaries]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Objectives and boundaries

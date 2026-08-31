@@ -6,7 +6,7 @@ tags: [lifecycle, bootstrap, mongodb, consistency]
 sources:
   - resource: ../../design/system.md
     title: System design draft
-status: proposed
+status: in-review
 ---
 
 # Bootstrap consistency
