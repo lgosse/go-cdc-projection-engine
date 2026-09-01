@@ -3,7 +3,9 @@
 Stamp every contract that makes configuration and event processing deterministic.
 
 - [Manifest contract](manifest-contract.md) - Versioning, validation, and
-  expressiveness of projection declarations.
+  expressiveness of projection declarations; versioned semantic manifests,
+  layered preflight validation, and multi-projection event fan-out are accepted
+  in [ADR-0040](../decisions/0040-manifest-contract.md).
 - [CDC event envelope](cdc-event-envelope.md) - Required upstream event data.
 - [Identity, time, and ordering](identity-time-ordering.md) - Canonical IDs and
   comparison rules.

@@ -8,8 +8,12 @@ No implementation or source-code architecture has been selected yet.
 
 ## Documentation
 
+- [Agent instructions](AGENTS.md) — project-wide workflow and architecture
+  guardrails for AI agents and other automated contributors.
 - [Architecture review workspace](docs/architecture/index.md) — the design split
   into small, linked decisions to review and stamp one by one.
+- [Implementation roadmap](docs/implementation-plan.md) — the gated path from
+  the accepted architecture baseline to the first production release.
 - [Architecture decision review skill](.skills/architecture-decision-review/SKILL.md)
   — the interactive framework used to review and record those decisions.
 - [Original system design draft](docs/design/system.md) — preserved source draft.

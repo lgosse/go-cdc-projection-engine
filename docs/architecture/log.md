@@ -88,3 +88,30 @@
 - **Decision**: Accepted ADR-0035 for separate binary, manifest, and migration
   acceptance gates, explicit cutover/retirement evidence, and an audited
   emergency path that preserves absolute safety invariants.
+- **Decision**: Accepted ADR-0036 for a consolidated datastore authority matrix,
+  MongoDB canonicality, Kafka cursor ownership, rebuildable Redis/Elasticsearch,
+  and explicit required reverse-index treatment.
+- **Decision**: Accepted ADR-0037 for the engine ownership boundary, explicit
+  non-goals, allow-listed source fallback, and an evidence-gated first release
+  with one representative projection.
+- **Decision**: Accepted ADR-0038 for bounded at-least-once delivery,
+  conditional convergence, measurable freshness and recovery objectives,
+  verified migration continuity, and explicit scoped exceptions.
+- **Decision**: Accepted ADR-0039 for canonical terminology distinguishing
+  source records, CDC transport, logical projections, physical targets, and
+  engine metadata, with related entity as the neutral relation term.
+- **Decision**: Accepted ADR-0040 for versioned semantic manifests, layered
+  preflight validation, strict deployment/semantic ownership, and independent
+  outcomes for multi-projection event fan-out.
+- **Decision**: Accepted ADR-0041 for workload-class stream groups, bounded
+  per-partition and per-projection work, multi-projection dispatch, and
+  partition-contiguous completion with selective consumer-group isolation.
+- **Decision**: Accepted ADR-0042 for deterministic mode-specific startup
+  preflight, scoped projection blocking, stable readiness during recoverable
+  dependency outages, and bounded graceful termination.
+- **Decision**: Accepted ADR-0043 to reconcile the source drafts: foreign
+  database reads are denied by default and permitted only through explicit,
+  bounded relation-level cache-miss fallback.
+- **Decision**: Accepted ADR-0044 for a single-maintainer review process with
+  explicit decision cards, a durable follow-up register, milestone gates, and
+  design checkpoints before substantial implementation.

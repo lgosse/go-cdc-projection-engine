@@ -3,9 +3,12 @@
 Stamp the live service behavior from startup through offset advancement.
 
 - [Runtime topology](runtime-topology.md) - Process, worker, and projection
-  isolation model.
-- [Startup and readiness](startup-and-readiness.md) - Validation, dependency
-  checks, and safe partial operation.
+  isolation model; workload-class stream groups, bounded per-projection work,
+  and partition-contiguous completion are accepted in
+  [ADR-0041](../decisions/0041-runtime-topology.md).
+- [Startup and readiness](startup-and-readiness.md) - Deterministic preflight,
+  scoped blocking, and stable readiness during recoverable outages; accepted in
+  [ADR-0042](../decisions/0042-startup-and-readiness.md).
 - [Stream pipeline](stream-pipeline.md) - Resolution, coalescing, transformation,
   and write flow; bounded context resolution and coalescing are accepted for v1.
 - [Cache and reverse lookups](cache-and-reverse-lookups.md) - Population,

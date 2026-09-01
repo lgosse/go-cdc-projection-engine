@@ -14,11 +14,15 @@ The review workflow is encoded in the repository-local
 ## Start here
 
 - [Review method](review-method.md) - Status vocabulary, stamping criteria, and
-  the template used by every architecture concept.
+  the accepted process used by every architecture concept; see [ADR-0044](decisions/0044-architecture-review-process.md).
 - [Decision register](decisions/index.md) - Accepted decisions and the ADR
   template.
-- [Source conflicts](source-conflicts.md) - Contradictions that must be resolved
-  before implementation.
+- [Implementation roadmap](../implementation-plan.md) - Gated path from the
+  accepted architecture baseline to a first production release.
+- [Follow-up register](follow-ups.md) - Questions that must be resolved or
+  explicitly deferred during implementation.
+- [Source conflicts](source-conflicts.md) - Source-draft contradictions and
+  their accepted reconciliation in [ADR-0043](decisions/0043-source-draft-conflict-resolution.md).
 
 ## Architecture sections
 

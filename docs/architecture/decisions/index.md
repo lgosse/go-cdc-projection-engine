@@ -104,6 +104,34 @@ Accepted decisions:
 - [ADR-0035: Release acceptance](0035-release-acceptance.md) - Separate gates
   promote binaries, manifests, and migrations using correctness, compatibility,
   performance, security, and rollback evidence, with an audited emergency path.
+- [ADR-0036: Data-store responsibilities](0036-data-store-responsibilities.md) -
+  Domain and engine MongoDB own authoritative state while Kafka, Redis, and
+  Elasticsearch have explicit delivery or derived roles.
+- [ADR-0037: Objectives and boundaries](0037-objectives-and-boundaries.md) -
+  The engine owns Kafka-driven projection processing and lifecycle coordination;
+  source capture, business workflows, query APIs, and cluster administration
+  remain external.
+- [ADR-0038: System guarantees](0038-system-guarantees.md) - The engine
+  promises bounded at-least-once delivery, conditional convergence, measurable
+  freshness, verified migration continuity, and explicit scoped exceptions.
+- [ADR-0039: Domain language](0039-domain-language.md) - A canonical glossary
+  distinguishes business records, CDC transport, logical projections, physical
+  targets, and engine metadata.
+- [ADR-0040: Manifest contract](0040-manifest-contract.md) - Versioned manifests
+  declare projection semantics and are validated structurally and semantically
+  before source progress, including multi-projection event fan-out.
+- [ADR-0041: Runtime topology](0041-runtime-topology.md) - Stream workload
+  groups use compatible capacity and failure domains with bounded
+  per-projection work and partition-contiguous completion.
+- [ADR-0042: Startup and readiness](0042-startup-and-readiness.md) - Deterministic
+  mode-specific preflight prevents unsafe source progress, while scoped
+  degradation and stable probes avoid unnecessary restart and rebalance storms.
+- [ADR-0043: Source-draft conflict resolution](0043-source-draft-conflict-resolution.md) -
+  Runtime foreign-database reads are denied by default and allowed only through
+  explicit, bounded relation-level fallback policies.
+- [ADR-0044: Architecture review process](0044-architecture-review-process.md) -
+  A single maintainer uses decision cards, a mandatory follow-up register, and
+  milestone design gates without requiring a second approver.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

@@ -1,11 +1,8 @@
 ---
-type: Architecture Review Topic
-title: Data-store responsibilities
-description: Assigns authority, durability, and recovery roles to each datastore.
-tags: [context, kafka, mongodb, redis, elasticsearch]
-sources:
-  - resource: ../../design/system.md
-    title: System design draft
+type: Architecture Decision Record
+title: "ADR-0036: Data-store responsibilities"
+description: Domain MongoDB and engine metadata own authoritative state while Kafka, Redis, and Elasticsearch have explicit delivery or derived roles.
+tags: [architecture, adr, context, kafka, mongodb, redis, elasticsearch, durability]
 status: accepted
 decision_id: ADR-0036
 accepted_on: 2026-08-31
@@ -18,11 +15,19 @@ conditions:
   - Prolonged shared metadata disagreement and exact reverse-index inventories remain follow-up topics.
 ---
 
-# Data-store responsibilities
+# ADR-0036: Data-store responsibilities
+
+## Context
+
+The engine spans domain-service MongoDB collections, Kafka CDC delivery, an
+engine-owned MongoDB metadata store, Redis lookup and reverse-index data, and
+versioned Elasticsearch read models. Earlier decisions establish individual
+boundaries, but recovery and disagreement handling require one consolidated
+authority matrix.
 
 ## Decision
 
-Use this authority matrix:
+Assign authority as follows:
 
 | Concern | Authority | Behavior on loss or disagreement |
 |---|---|---|
@@ -34,58 +39,38 @@ Use this authority matrix:
 | Search documents | Elasticsearch physical targets | Rebuildable from MongoDB plus retained CDC |
 | Search visibility | Elasticsearch aliases | Only a verified active target may be exposed |
 
-Keep domain-service MongoDB collections and engine-owned MongoDB metadata as
-separate ownership boundaries. The projector does not write control state into
-domain collections.
+Domain-service MongoDB and engine-owned MongoDB metadata remain separate
+ownership boundaries. The projector does not write control state into domain
+collections.
 
 For disagreement, MongoDB-derived state wins for canonical rebuild and
 reconciliation. Kafka events apply only when identity and source revision are
 valid; stale events are fenced. Kafka offsets and MongoDB metadata own different
 state domains and are not made one transaction. MongoDB wins over Redis and
 Elasticsearch; those stores are refreshed, reconciled, or rebuilt. Neither Redis
-nor Elasticsearch automatically wins a disagreement with the other.
+nor Elasticsearch automatically wins over the other.
 
 When a required source boundary or dependency is unavailable, report `unknown`,
 hold or pause the narrowest safe scope, and do not invent a value or trigger
 blind repair.
 
-Classify Redis relationship data explicitly. An optional reference cache may use
-controlled read-through or bounded repair on a miss. A required runtime reverse
-index—such as `dispute.attendance_id -> task_id`—is necessary for some event
-resolutions but remains derived and rebuildable. If it is unavailable, events
-wait, defer, or enter repair custody according to their relation policy; the
-index never becomes authoritative merely because runtime resolution depends on
-it.
-
-## Pros
-
-- Gives every state item a clear recovery path.
-- Prevents derived-store failures from becoming silent data loss.
-- Preserves ownership boundaries between domain data and projector control state.
-- Makes required reverse-index dependencies visible without promoting Redis to
-  authority.
-
-## Cons and risks
-
-- An engine-owned metadata store needs its own availability, backup, and access
-  controls.
-- Kafka retention limits stream-only recovery.
-- Required reverse-index loss can pause otherwise valid events.
-- Rebuilding Redis relationships from source data may be costly.
-- Resolving prolonged Kafka/MongoDB disagreement requires an explicit later
-  policy.
+Classify Redis relationship data as optional reference caches or required runtime
+reverse indexes. Required indexes, such as `dispute.attendance_id -> task_id`,
+remain derived and rebuildable. If unavailable, events wait, defer, or enter
+repair custody according to their relation policy; the index never becomes
+authoritative merely because runtime resolution depends on it.
 
 ## Alternatives considered
 
-1. Kafka as the complete source of truth. This fails after retention expiry and
-   cannot represent current business state as reliably as MongoDB.
-2. Redis owns routing, fences, or progress. Eviction or failover could silently
-   change correctness.
-3. Elasticsearch is canonical after indexing. Partial writes, mappings, and
+1. **Kafka as the complete source of truth.** This fails after retention expiry
+   and cannot represent current business state as reliably as MongoDB.
+2. **Redis owns routing, fences, or progress.** Eviction or failover could
+   silently change correctness.
+3. **Elasticsearch is canonical after indexing.** Partial writes, mappings, and
    aliases would make the read model its own authority.
-4. One MongoDB store owns domain and engine state. This couples projector
+4. **One MongoDB store owns domain and engine state.** This couples projector
    mutations to domain-service ownership and access boundaries.
-5. Every reverse index is optional. Some relationship events then become
+5. **Every reverse index is optional.** Some relationship events then become
    impossible to resolve safely and the dependency remains hidden.
 
 ## Consequences
@@ -109,7 +94,7 @@ it.
 - No projector write crosses into domain-service control ownership.
 - Every state item has a documented authority and recovery path.
 
-## Review trigger
+## Review triggers
 
 Revisit if the metadata store cannot meet availability or retention objectives,
 Kafka retention or MongoDB rebuilds cannot support recovery, required reverse
@@ -118,10 +103,10 @@ correctness.
 
 ## Related concepts
 
-- [Data-store responsibilities](data-store-responsibilities.md)
-- [Live ingestion source](live-ingestion-source.md)
-- [Redis authority boundary](redis-authority-boundary.md)
-- [Durable state ownership](durable-state-ownership.md)
+- [Data-store responsibilities](../01-system-context/data-store-responsibilities.md)
+- [Live ingestion source](../01-system-context/live-ingestion-source.md)
+- [Redis authority boundary](../01-system-context/redis-authority-boundary.md)
+- [Durable state ownership](../01-system-context/durable-state-ownership.md)
 - [Cache and reverse lookups](../03-runtime/cache-and-reverse-lookups.md)
 - [Offsets and delivery](../03-runtime/offsets-and-delivery.md)
 - [Elasticsearch writes](../03-runtime/elasticsearch-writes.md)
