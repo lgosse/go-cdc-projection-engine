@@ -29,7 +29,10 @@ Measure effective mutations per second, event-to-searchable freshness
 percentiles, bootstrap and catch-up duration, queue depth and age,
 Elasticsearch bulk latency and throttling, Redis and MongoDB read latency, CPU,
 memory, retries, backpressure, and document/nested-item/fan-out/batch/source-read
-limits.
+limits. For transformations, include mapping compile complexity, event and
+canonical input/output bytes, array items traversed, evaluation CPU/latency, and
+peak worker memory under concurrency
+([ADR-0060](../decisions/0060-bloblang-subset-and-resource-budgets.md)).
 
 Use four benchmark phases:
 

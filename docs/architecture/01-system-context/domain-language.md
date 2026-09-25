@@ -12,7 +12,7 @@ accepted_on: 2026-08-31
 owner: TBD
 conditions:
   - The glossary distinguishes business records, Debezium transport, logical projections, physical targets, and engine metadata.
-  - Related entity is the neutral general term; child is retained only as a constrained manifest relation subtype.
+  - Related entity is the neutral general term; child alone does not imply ownership, while owned-child is an explicit lifecycle role.
   - Envelope, event, source record, projection document, logical projection, physical target, alias, and reverse index are not interchangeable terms.
   - Organization-specific vocabulary conflicts remain a follow-up review trigger.
 ---
@@ -36,6 +36,8 @@ Use these canonical terms:
 | **Reference relation** | A relation contributing lookup or denormalized fields |
 | **Nested member** | A related entity stored as an independently identified nested item |
 | **Snapshot relation** | Related data embedded as a non-independently fenced object |
+| **Owned child relation** | A separately identified member belonging to one root's projection lifecycle |
+| **Independent entity relation** | A separately identified entity with its own lifecycle that may contribute to multiple roots |
 | **Logical projection ID** | Stable identity of a projection across physical index versions |
 | **Physical target** | A concrete versioned Elasticsearch index receiving writes |
 | **Search alias** | Stable read name pointing to one verified physical target |
@@ -49,9 +51,10 @@ Use these canonical terms:
 | **Replay** | Reprocessing retained CDC or DLQ records through normal idempotent handling |
 | **Migration** | Changing projection targets or semantics through the blue-green lifecycle |
 
-Use **related entity** as the neutral general term. “Child” may remain as a
-manifest relation subtype, but must not imply business ownership or lifecycle
-ownership.
+Use **related entity** as the neutral general term. “Child” by itself does not
+imply business or lifecycle ownership; only the explicit **owned child
+relation** role carries the lifecycle meaning defined by
+[ADR-0059](../decisions/0059-relation-lifecycle-classification.md).
 
 Keep these distinctions explicit:
 

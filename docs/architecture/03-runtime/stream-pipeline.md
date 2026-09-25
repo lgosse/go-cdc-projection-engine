@@ -43,6 +43,12 @@ idempotent mutation per target document and active physical index. Record the
 outcome against every contributing partition offset only after the combined
 mutation has a definitive result.
 
+Determine affected projections from the manifest's materialized dependency graph
+at source-entity/relation granularity. A participating entity update triggers
+recomputation even when its changed field is not directly projected; see
+[ADR-0061](../decisions/0061-projection-dependency-invalidation.md). Cache
+refreshes and transport-only metadata do not independently trigger recomputation.
+
 ## Pros
 
 - Coalescing reduces write amplification.

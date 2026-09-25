@@ -22,7 +22,10 @@ The review workflow is encoded in the repository-local
 - [Follow-up register](follow-ups.md) - Questions that must be resolved or
   explicitly deferred during implementation.
 - [Source conflicts](source-conflicts.md) - Source-draft contradictions and
-  their accepted reconciliation in [ADR-0043](decisions/0043-source-draft-conflict-resolution.md).
+  their accepted reconciliation in [ADR-0043](decisions/0043-source-draft-conflict-resolution.md),
+  with fallback observability in [ADR-0045](decisions/0045-fallback-read-observability.md)
+  and v1 fallback eligibility in
+  [ADR-0046](decisions/0046-source-fallback-eligibility.md).
 
 ## Architecture sections
 

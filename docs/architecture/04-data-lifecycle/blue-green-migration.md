@@ -32,10 +32,14 @@ operator actions in engine-owned MongoDB. Redis may mirror routing data but is n
 authoritative. Only one migration may control a logical projection/version at a
 time, and expired leases prevent further state mutation by the old owner.
 
-Provision and validate the new versioned target, activate live dual-write before
-bootstrap, and use the accepted source-boundary and overlap-replay procedure.
-Cut over the read alias only after mapping, bootstrap, source high-watermark,
-cache-generation, delete/fence, and sampled canonical-consistency checks pass.
+Provision and validate the new versioned target with its immutable manifest hash,
+transformation version, and transformation digest. Each active physical target
+uses its own pinned transformation identity during live dual-write; never write
+one target's transformed output into a target pinned to different semantics.
+Activate dual-write before bootstrap and use the accepted source-boundary and
+overlap-replay procedure. Cut over the read alias only after mapping, target
+identity, bootstrap, source high-watermark, cache-generation, delete/fence, and
+sampled canonical-consistency checks pass.
 
 Keep the old target in dual-write during a configured rollback window. If the new
 target fails, atomically move the read alias back while the old target remains
@@ -87,7 +91,8 @@ delete it automatically at cutover.
 - Lost Redis routing state is reconstructed from MongoDB metadata.
 - Expired leases cannot continue migration transitions.
 - Verification gates block alias swaps when mappings, high-watermarks, cache
-  generations, deletes, or sampled canonical data are incorrect.
+  generations, target transformation identity, deletes, or sampled canonical
+  data are incorrect.
 - Alias swaps and operator actions are atomic where supported and fully audited.
 - No target is retired while referenced, needed for rollback, or missing required
   retention and rebuild evidence.

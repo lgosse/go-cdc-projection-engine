@@ -132,6 +132,71 @@ Accepted decisions:
 - [ADR-0044: Architecture review process](0044-architecture-review-process.md) -
   A single maintainer uses decision cards, a mandatory follow-up register, and
   milestone design gates without requiring a second approver.
+- [ADR-0045: Fallback-read observability and privacy](0045-fallback-read-observability.md) -
+  Fallback reads use bounded metrics and trace correlation; raw identifiers stay
+  out of ordinary telemetry, with controlled references reserved for
+  authenticated diagnostics.
+- [ADR-0046: Source fallback eligibility](0046-source-fallback-eligibility.md) -
+  V1 allows only explicitly bounded, unique-index direct reference fallback;
+  reverse-index misses use rebuild, repair, or pending, and fallback stays off
+  until numeric source budgets are evidenced.
+- [ADR-0047: Debezium operation and snapshot scope](0047-debezium-operation-and-snapshot-scope.md) -
+  V1 applies only live create/update/delete events, durably DLQs snapshot-read
+  and unknown operations, and uses the engine bootstrap path for existing data.
+- [ADR-0048: Event size and buffer diagnostics](0048-event-size-and-buffer-diagnostics.md) -
+  Deterministic per-event size/decode failures use durable DLQ custody and
+  bounded diagnostics; temporary queue saturation pauses intake.
+- [ADR-0049: Transaction metadata treatment](0049-transaction-metadata-treatment.md) -
+  Transaction metadata is optional diagnostic context in v1, not a freshness
+  fence or cross-document atomicity contract.
+- [ADR-0050: Deletion-fence retention policy](0050-deletion-fence-retention-policy.md) -
+  Durable deletion fences remain for at least 30 days; older raw replay is
+  unsupported and carries an explicitly accepted resurrection risk after expiry.
+- [ADR-0051: Rebuilding child membership from source snapshots](0051-child-rebuild-from-source-snapshots.md) -
+  Child absence is authoritative only after complete source-bounded enumeration;
+  ambiguous completeness or ordering blocks rebuild cutover.
+- [ADR-0052: MongoDB source-ordering scope](0052-mongodb-source-ordering-scope.md) -
+  Freshness compares `source.ts_ms` + `source.ord` within one source, replica
+  set, and entity scope; production field availability is an enablement gate.
+- [ADR-0053: Canonical source ID serialization](0053-canonical-source-id-serialization.md) -
+  Entity IDs use type-tagged, length-framed payloads with explicit ObjectID,
+  UUID, string, and signed BSON integer representations.
+- [ADR-0054: Equal source revision conflicts](0054-equal-source-revision-conflicts.md) -
+  Identical redelivery at one revision is a no-op; differing content is retained
+  for entity-local authoritative repair without an invented tie-breaker.
+- [ADR-0055: Derived Elasticsearch fence metadata](0055-derived-elasticsearch-fence-metadata.md) -
+  Elasticsearch stores rebuildable, private per-entity fence entries in a
+  reserved `engine_meta` namespace while MongoDB remains authoritative.
+- [ADR-0056: Nested relation capacity boundaries](0056-nested-relation-capacity-boundaries.md) -
+  Authors own model and expected size; alerts cover estimate overruns and
+  benchmarked hard limits block unsafe work without dropping valid data.
+- [ADR-0057: Reference change propagation](0057-reference-change-propagation.md) -
+  Mutable reference changes use reverse-indexed durable bounded recomputation
+  of affected roots with contributor-scoped fencing.
+- [ADR-0058: Reference fan-out execution threshold](0058-reference-fanout-execution-threshold.md) -
+  Per-relation benchmark-derived ceilings route small fan-outs to live updates
+  and larger valid fan-outs to durable deferred recomputation.
+- [ADR-0059: Relation lifecycle classification](0059-relation-lifecycle-classification.md) -
+  Every relation declares snapshot, owned-child, or independent-entity
+  semantics separately from its Elasticsearch storage shape.
+- [ADR-0060: Bloblang subset and resource budgets](0060-bloblang-subset-and-resource-budgets.md) -
+  Transformations use a deterministic data-only allowlist; numeric resource
+  caps require representative benchmark evidence.
+- [ADR-0061: Projection dependency invalidation](0061-projection-dependency-invalidation.md) -
+  V1 recomputes at entity/relation granularity through the declared dependency
+  graph, even when a changed field is not used by the projection.
+- [ADR-0062: Transformation version and target association](0062-transformation-version-target-association.md) -
+  Each physical target pins its manifest hash, transformation version, and
+  normalized transformation/allowlist digest; semantic changes use a new
+  blue-green target.
+- [ADR-0063: Independent-reference delete effects](0063-independent-reference-delete-effects.md) -
+  Recompute dependent roots on reference deletion, remove optional copied
+  fields or apply explicit safe missing-value behavior, and never cascade-delete
+  independent roots.
+- [ADR-0064: Fence token encoding and protection](0064-fence-token-encoding-and-protection.md) -
+  Entity keys and mutation fingerprints use domain-separated HMAC-SHA-256
+  tokens with target-pinned key IDs, fixed encoding, and pseudonymous-data
+  handling.
 
 - [ADR template](template.md) - Copy only after a concept has been reviewed and
   stamped.

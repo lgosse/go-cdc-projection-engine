@@ -25,11 +25,13 @@ conditions:
 Use one versioned YAML manifest per logical projection. It declares logical
 projection identity and version; subscribed Kafka topics and source identity;
 MongoDB references for bootstrap, audit, and repair; source-to-target fields and
-types; root, reference, nested, and multi-hop relations; root-resolution and
-reverse-index policies; cardinality and fan-out limits; Bloblang transformations
-and their version; Elasticsearch mappings, settings, aliases, and target version;
-field sensitivity classifications; cache, fallback, deletion, and retention
-policies; and manifest-level capacity and safety limits.
+types; root identity; a lifecycle role (`snapshot`, `owned_child`, or
+`independent_entity`) for each relation; reference, nested, and multi-hop
+relations; root-resolution and reverse-index policies; cardinality and fan-out
+limits; Bloblang transformations and their version; Elasticsearch mappings,
+settings, aliases, and target version; field sensitivity classifications;
+cache, fallback, deletion, and retention policies; and manifest-level capacity
+and safety limits.
 
 The manifest may contain environment-variable or secret references such as a URI
 variable name, but never literal credentials, tokens, or key material.
@@ -44,9 +46,11 @@ Validate before Kafka consumption or MongoDB scanning:
 
 1. YAML parsing and structural schema validation.
 2. Required-field, type, and unknown-field checks.
-3. Semantic graph validation for identity, root resolution, cycles, fan-out,
-   target paths, and relation compatibility.
-4. Transformation compilation and resource-bound checks.
+3. Semantic graph validation for identity, root resolution, lifecycle roles,
+   cycles, fan-out, target paths, and relation compatibility.
+4. Transformation compilation against the pinned versioned allowlist and
+   static resource-bound checks before source progress; numeric runtime limits
+   must have Q-070 evidence before production enablement.
 5. Elasticsearch mapping/settings compatibility classification.
 6. Sensitivity, destination-policy, and capacity-limit validation.
 7. Dependency capability checks.
@@ -54,8 +58,12 @@ Validate before Kafka consumption or MongoDB scanning:
 Unknown or unsupported fields, schema versions, transformations, or capabilities
 block the affected workload. The engine does not silently coerce or ignore them.
 Record an immutable manifest hash, manifest-schema version, projection version,
-transformation version, and validation result in diagnostics and engine metadata.
-Each physical target is produced from one pinned manifest set.
+transformation version, transformation digest, and validation result in
+authoritative engine-owned target metadata (MongoDB remains authoritative) and
+diagnostics. Each physical target is produced from one pinned manifest set and
+transformation identity. A public per-document transformation-version field is
+not required; target metadata carries that identity as specified by
+[ADR-0062](../decisions/0062-transformation-version-target-association.md).
 
 Allow one source event to update multiple logical projections when multiple
 manifests subscribe to the topic and identity. Each projection has independent
@@ -114,7 +122,8 @@ downgraded or interpreted using an older semantic contract.
 
 - A representative manifest passes structural and semantic validation before
   source progress.
-- Invalid identity, cycles, fan-out, transformations, sensitivity, and
+- Invalid identity, cycles, fan-out, unsupported or over-complex
+  transformations, sensitivity, and
   compatibility are rejected deterministically.
 - Manifest hashes and version sets are recorded on targets and diagnostics.
 - One source event updating multiple projections produces independent outcomes

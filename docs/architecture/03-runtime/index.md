@@ -13,7 +13,8 @@ Stamp the live service behavior from startup through offset advancement.
   and write flow; bounded context resolution and coalescing are accepted for v1.
 - [Cache and reverse lookups](cache-and-reverse-lookups.md) - Population,
   invalidation, misses, and recovery; relation-specific retention and
-  generation rebuilds are accepted for v1.
+  generation rebuilds are accepted for v1; source-fallback eligibility is
+  specified in [ADR-0046](../decisions/0046-source-fallback-eligibility.md).
 - [Elasticsearch writes](elasticsearch-writes.md) - Scripted updates, dual writes,
   and partial bulk results; fenced idempotent semantics are accepted for v1.
 - [Offsets and delivery](offsets-and-delivery.md) - Kafka commit semantics and

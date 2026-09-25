@@ -12,7 +12,7 @@ conditions:
   - Restricted fields are not candidates for Redis or Elasticsearch by default; explicit future exceptions require a documented product need.
   - Credentials and KMS-provided encryption material arrive through environment variables; rotation restarts workers for now, while interfaces must not preclude future live rotation.
   - One authorized operator model is sufficient initially; privileged actions are audited and stricter role separation may evolve later without requiring two-person approval.
-  - Source anonymization propagates through the normal CDC and projection path; cached and retained derived content uses time-to-live expiry, while minimal correctness fences may outlive content for their required horizon.
+  - Source anonymization propagates through the normal CDC and projection path; cached and retained derived content uses time-to-live expiry, while deletion fences are retained for at least 30 days under the accepted residual-risk policy (ADR-0050).
   - Retention relationships are accepted but exact calendar durations remain a later operational/compliance decision.
   - Legal treatment of identifiers retained in deletion fences is explicitly deferred.
 ---
@@ -48,10 +48,12 @@ non-content deletion fence may outlive erased content for the replay and
 resurrection-protection horizon. Historical raw DLQ payloads, logs, and backups
 are therefore governed by their own retention and redaction policies.
 
-Use retention relationships rather than hard-stamping calendar values: deletion
-fences cover the maximum correctness horizon, replayable DLQ payloads cover the
-replay horizon plus investigation time, and audit metadata may live longer.
-Exact durations remain an operational and compliance follow-up. The legal
+Deletion fences remain for at least 30 days after durable persistence. Raw
+replay after that window is unsupported; an older recovery must rebuild from
+current authoritative state before writes resume. The accepted policy carries a
+residual risk of resurrection if an older event nevertheless arrives after its
+fence expires ([ADR-0050](../decisions/0050-deletion-fence-retention-policy.md)).
+DLQ and audit retention durations remain operational follow-ups, and the legal
 treatment of identifiers retained in fences is deferred.
 
 ## Pros

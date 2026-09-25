@@ -39,6 +39,13 @@ decision card and wait for an explicit disposition. After acceptance, update
 the concept, ADR, indexes, and log. Record every unresolved implementation
 question in the [follow-up register](docs/architecture/follow-ups.md).
 
+Make recommendations understandable without relying on unstated prior context:
+explain what behavior is being chosen, why it matters, and what the user or
+system will observe. Use concrete project examples when they clarify the
+options; show the input, choice, and resulting behavior, and label examples as
+observed or hypothetical. State assumptions instead of presenting them as
+project facts.
+
 ## Implementation work
 
 - Do not begin a substantial slice until its design checkpoint is documented

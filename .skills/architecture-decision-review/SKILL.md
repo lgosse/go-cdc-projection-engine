@@ -27,6 +27,12 @@ or deployment configuration unless the user separately asks for implementation.
 - Keep proposals implementation-neutral until the decision genuinely requires a
   mechanism. When mechanisms are discussed, compare at least one credible
   alternative.
+- Make the context clear in every decision card: explain the behavior being
+  chosen, why it matters now, and the practical effect on processing or
+  operators. Use concrete examples when they help distinguish the options. For
+  behavior choices, show an input, the selected rule, and the resulting action;
+  label repository examples and hypothetical examples clearly, and state any
+  assumptions.
 - Never mark a topic accepted merely because the current draft sounds plausible.
 
 ## Discovery and queue
@@ -60,10 +66,13 @@ Before asking the user to decide, present a compact decision card containing:
 5. **Alternatives** — at least one credible alternative, including the cost of
    deferring where useful.
 6. **Trade-offs** — concrete pros, cons, risks, and affected concepts.
-7. **Stamp questions** — only the smallest set of unanswered questions needed
-   for a decision.
-8. **Acceptance evidence** — what must later be tested, observed, or documented
-   to show the decision is sound.
+7. **Concrete example** — when it helps explain a behavioral choice, show a
+   representative input, which rule applies, and what the system does; state
+   whether the example is observed or hypothetical.
+8. **Stamp questions** — only the smallest set of unanswered questions needed
+  for a decision.
+9. **Acceptance evidence** — what must later be tested, observed, or documented
+  to show the decision is sound.
 
 End with one explicit request for the user's disposition. Do not ask a list of
 unrelated architecture questions in the same turn.
@@ -134,6 +143,7 @@ Proposal: <current option>
 Alternative: <credible alternative>
 Trade-offs: <pros>; <cons/risks>
 Dependencies: <links or none>
+Example: <input -> choice -> outcome, when useful>
 Open questions: <only blockers>
 Acceptance evidence: <what will prove it>
 

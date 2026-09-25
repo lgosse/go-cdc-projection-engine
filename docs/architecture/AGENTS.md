@@ -14,6 +14,11 @@ repository-root [`AGENTS.md`](../../AGENTS.md) first.
 - Never create an ADR that claims acceptance without explicit acceptance.
 - For `accept with conditions`, record the conditions and move unresolved
   material choices into the [follow-up register](follow-ups.md).
+- Present each recommendation with enough plain-language context to explain
+  why the choice matters and what changes for an event or operator. When a
+  concrete example would make the choice easier to see, include the input,
+  selected behavior, and observable outcome; identify whether the example is
+  from repository evidence or hypothetical.
 
 ## Editing rules
 

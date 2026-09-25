@@ -16,6 +16,8 @@ conditions:
   - Foreign-database reads remain disabled by default and require an explicit relation policy.
   - Permitted fallback is bounded by deduplication, timeout, rate, source-protection, and cache-repopulation controls.
   - Required reverse-index misses default to rebuild, repair, or bounded pending rather than arbitrary synchronous reads.
+  - Fallback telemetry follows the bounded-dimension and protected-diagnostic rules in ADR-0045.
+  - V1 fallback eligibility and fail-closed limits follow ADR-0046; numeric budgets remain a pre-enablement follow-up under Q-122.
 ---
 
 # Source draft conflicts
@@ -34,6 +36,17 @@ default to asynchronous rebuild, repair, or bounded pending; synchronous lookup
 is exceptional. If the source is unavailable, the engine does not invent a
 value or publish an incomplete projection. It defers, pauses, repairs, or uses
 the applicable durable custody path.
+
+For v1, [ADR-0046](decisions/0046-source-fallback-eligibility.md) narrows
+source fallback to explicitly allow-listed direct reference-value lookups backed
+by a unique source index. Each relation must have finite timeout, rate, and
+concurrency limits, with an aggregate source-wide ceiling. If any limit is
+missing, fallback stays disabled. Reverse-index misses use rebuild, repair, or
+bounded pending. Q-122 is deferred until before the first fallback-enabled
+relation: during Step 3a, identify a representative unique-index lookup and
+prepare a source-capacity benchmark. Record per-relation timeout, request-rate,
+and concurrency limits plus the aggregate source-wide ceiling before enabling
+fallback. Fallback remains off until that evidence and configuration exist.
 
 The other source conflicts are resolved by the linked accepted decisions for
 live ingestion, durable state, the Debezium envelope, identity and ordering,
@@ -70,6 +83,11 @@ follow-up questions.
 - “Zero cross-database point queries at runtime” versus cache-miss database
   fallbacks in the telemetry draft is resolved as a default-deny rule with
   explicit, bounded relation-level fallback.
+- Fallback observability and privacy are specified by
+  [ADR-0045](decisions/0045-fallback-read-observability.md): bounded metrics,
+  trace/span correlation, no raw identifiers in ordinary telemetry, and
+  controlled pseudonymous references only in authenticated diagnostics when
+  needed.
 - **Resolved by [Redis authority boundary](01-system-context/redis-authority-boundary.md)
   and [durable state ownership](01-system-context/durable-state-ownership.md):**
   Redis is non-authoritative; Kafka owns consumer cursors and the engine-owned
@@ -89,9 +107,17 @@ follow-up questions.
 ## Follow-up questions
 
 - Which relation types are allowed to use source-of-truth fallback, and what
-  exact rate, timeout, and concurrency budgets do they receive?
+  exact rate, timeout, and concurrency budgets do they receive? Eligibility is
+  resolved by [ADR-0046](decisions/0046-source-fallback-eligibility.md); exact
+  numeric values are deferred under Q-122 and required before any relation is
+  enabled. Begin benchmark preparation during Step 3a.
 - How are fallback reads and failures surfaced in metrics, traces, and
-  diagnostics without exposing protected identifiers?
+  diagnostics without exposing protected identifiers? Resolved by
+  [ADR-0045](decisions/0045-fallback-read-observability.md).
+- What numeric per-relation timeout, rate, and concurrency limits, plus
+  aggregate source-wide ceiling, are safe for each enabled v1 reference fallback
+  under the source owner's capacity? Q-122 is deferred until before the first
+  fallback-enabled relation; fallback stays disabled meanwhile.
 
 ## Validation
 

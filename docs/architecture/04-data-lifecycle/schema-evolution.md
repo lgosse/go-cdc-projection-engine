@@ -38,9 +38,14 @@ Classify manifest and projection changes semantically into four classes:
    progress remains blocked until an operator resolves the mismatch.
 
 Compare normalized mappings, settings, and transformation metadata semantically,
-not raw YAML or JSON bytes. Pin the exact manifest and transformation versions
-to each physical target. Never silently change an existing field's meaning or
-remove a consumer-visible field.
+not raw YAML or JSON bytes. Pin the immutable manifest hash, transformation
+version, and stable digest over the canonical normalized transformation
+definition plus its versioned allowlist identity to each physical target
+([ADR-0062](../decisions/0062-transformation-version-target-association.md)).
+The same transformation version cannot be rebound to a different digest; that
+mismatch blocks preflight. A semantic transformation change uses a new physical
+target and the blue-green lifecycle. Never silently change an existing field's
+meaning or remove a consumer-visible field.
 
 ## Pros
 
@@ -88,7 +93,8 @@ remove a consumer-visible field.
   changes are blocked from in-place mutation and enter blue-green migration.
 - Ambiguous or malformed changes block consumption before source progress.
 - Each target records the exact manifest and transformation versions used to
-  produce it.
+  produce it, including the transformation digest; a version/digest mismatch
+  blocks before source progress.
 
 ## Review trigger
 

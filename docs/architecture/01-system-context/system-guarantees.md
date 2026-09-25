@@ -29,9 +29,13 @@ promised. Every committed Kafka offset has a definitive terminal outcome for
 each required target. Duplicate, delayed, and out-of-order events converge
 deterministically when they have valid identity and source-revision metadata,
 remain within the supported retention horizon, and required source evidence is
-available. Older revisions cannot overwrite newer revisions or resurrect fenced
-deletes. Malformed or unsupported event-local records receive durable DLQ
-custody rather than silently disappearing.
+available. Deletion fences are retained for at least 30 days; raw replay older
+than that is unsupported, and the accepted expiry risk means an older event can
+resurrect deleted state
+([ADR-0050](../decisions/0050-deletion-fence-retention-policy.md)). Older
+revisions within the supported boundary cannot overwrite newer revisions or
+resurrect fenced deletes. Malformed or unsupported event-local records receive
+durable DLQ custody rather than silently disappearing.
 
 ### Freshness and recovery
 

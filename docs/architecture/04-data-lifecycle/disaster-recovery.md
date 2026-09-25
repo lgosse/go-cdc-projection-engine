@@ -11,6 +11,7 @@ conditions:
   - Engine-owned MongoDB metadata, including fences, DLQ custody, migration state, checkpoints, and operator history, is backed up with tested restore/PITR procedures.
   - Redis and Elasticsearch are treated as derived and rebuilt from MongoDB plus retained CDC; Elasticsearch snapshots are optional acceleration only.
   - Recovery fails closed when authority state, deletion evidence, or Kafka history is missing rather than guessing.
+  - Raw replay older than 30 days is unsupported; recovery outside that fence-retention window rebuilds current source state before writes resume (ADR-0050).
   - Recovery exercises and per-state RPO/RTO objectives remain required follow-up evidence.
 ---
 
@@ -27,14 +28,16 @@ state or deletion evidence is uncertain:
 | Elasticsearch loss or corruption | Provision a fresh versioned target, bootstrap it, replay live overlap, validate, and cut over; snapshots may accelerate this but are not authoritative. |
 | Engine metadata MongoDB loss | Restore from backup or point-in-time recovery before resuming; never infer fences, DLQ custody, migration phases, or checkpoints from derived stores. |
 | Consumer restart | Restore metadata and resume committed Kafka offsets; replay idempotently and never commit from in-memory state alone. |
-| Kafka history expiry | Start a new source-bounded MongoDB bootstrap. Missing deletion fences or terminal DLQ evidence becomes an auditable incident, not silently accepted recovery. |
+| Kafka history expiry or recovery outside 30 days | Keep writes paused and rebuild from current authoritative MongoDB state using a new source boundary; do not resume raw replay older than 30 days. Missing deletion fences or terminal DLQ evidence becomes an auditable incident, not silently accepted recovery. |
 | Domain MongoDB unavailable | Keep existing search reads where possible, but pause affected progress and repairs; do not fabricate source state. |
 | Full deployment or region loss | Restore metadata first, verify authority and fencing epochs, then resume consumers and rebuild derived state as needed. |
 
 Back up engine-owned MongoDB with a recovery point suitable for deletion fences,
 DLQ custody, migration state, checkpoints, and audit history. Kafka retention
 must cover the longest expected outage and replay window where replay is
-required. Redis backups are optional and never replace generation rebuilds.
+required. Raw replay is supported only within 30 days; after that, rebuild from
+current source state and validate before writes resume (ADR-0050). Redis backups
+are optional and never replace generation rebuilds.
 
 Recovery is complete only after restored offsets, fences, DLQ records, migration
 state, cache generations, and projection convergence have been verified. Define

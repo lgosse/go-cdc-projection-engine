@@ -15,7 +15,7 @@ conditions:
   - A one-hour outage must be recoverable within two hours after dependencies recover, subject to benchmark validation.
   - Hard safety limits protect queues, memory, documents, nested items, fan-out, batches, source reads, and effective mutations; performance targets generate alerts rather than silent drops.
   - Sustainable capacity is planned at approximately two times peak effective mutation rate until representative benchmarks establish a better margin.
-  - Unsafe or unmeasured manifests are rejected or blocked before production use; oversized records remain diagnosable even while their terminal disposition is deferred.
+  - Unsafe or unmeasured manifests are rejected or blocked before production use; deterministic oversized records reach durable DLQ custody before offset completion, while temporary queue saturation pauses intake ([ADR-0048](../decisions/0048-event-size-and-buffer-diagnostics.md)).
 ---
 
 # Performance and capacity
@@ -36,9 +36,10 @@ independent rate limit.
 
 Hard safety limits apply to queue records/bytes/age, event and canonical
 document size, nested-child count, relationship fan-out, batch bytes/age,
-memory per partition, controlled source-read rate, and effective mutations per
-event. Exceeding a hard limit pauses, rejects, defers, or otherwise isolates the
-affected work under the existing delivery and DLQ rules. Throughput, lag,
+memory per partition, controlled source-read rate, transformation complexity
+and evaluation work, and effective mutations per event. Exceeding a hard limit
+pauses, rejects, defers, or otherwise isolates the affected work under the
+existing delivery and DLQ rules. Throughput, lag,
 utilization, transformation latency, and approaching limits are operational
 warnings and scaling signals, not reasons to silently drop data.
 
@@ -55,9 +56,18 @@ repair capacity. Representative multi-store benchmarks are a gate for
 production manifests and must include peak, high-fan-out, hot-key, cache-miss,
 dual-write, duplicate, out-of-order, and dependency-outage scenarios.
 
-Oversized Debezium records must emit an explicit metric, structured diagnostic,
-and identifiable audit record even though their final terminal disposition is a
-follow-up decision.
+Transformation benchmarks also record mapping compile complexity, Kafka event
+bytes, canonical input and output bytes, relation and array cardinalities,
+transform CPU/latency, and peak worker memory under concurrency. Numeric caps
+for these dimensions are recorded with their workload profile and evidence under
+Q-070 ([ADR-0060](../decisions/0060-bloblang-subset-and-resource-budgets.md)).
+
+Oversized Debezium records emit bounded metrics and structured diagnostics.
+When an incoming record exceeds its configured per-event limit or cannot be
+safely decoded, it reaches durable DLQ custody before its offset completes.
+Temporary queue saturation pauses intake instead of creating a DLQ record for a
+valid event. The numeric per-event limit remains subject to capacity evidence.
+See [ADR-0048](../decisions/0048-event-size-and-buffer-diagnostics.md).
 
 ## Pros
 
@@ -128,5 +138,7 @@ capacity or search freshness.
 - What benchmark datasets and projected workload distributions should be kept
   current?
 - What exact hard limits and warning thresholds replace the initial targets?
-- When must a high-cardinality nested relation become a separate projection?
+- **Resolved by [ADR-0056](../decisions/0056-nested-relation-capacity-boundaries.md):** When must a high-cardinality nested relation become a separate projection? When it exceeds the tested hard envelope for cardinality, document size, or required performance; numeric values remain evidence-gated by Q-070.
+- Q-070 also establishes the numeric, per-relation live fan-out ceilings for reference propagation before production use ([ADR-0058](../decisions/0058-reference-fanout-execution-threshold.md)).
+- Q-070 also records numeric Bloblang complexity, byte, collection-work, latency, and worker-resource limits with representative workload evidence ([ADR-0060](../decisions/0060-bloblang-subset-and-resource-budgets.md)).
 - Do observed workloads justify changing the two-times peak planning margin?

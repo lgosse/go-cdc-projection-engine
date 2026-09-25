@@ -28,6 +28,51 @@ implementation step.
 - Implementation designs must preserve reusable, domain-neutral engine logic;
   the first projection is a proving case, not the architecture's owner.
 
+## Current status
+
+The initial architecture baseline snapshot is commit `699378f` (2026-09-01).
+The baseline review gate is now clear: ADR-0045 and ADR-0046 record the accepted
+fallback observability and eligibility decisions, resolving Q-121 and the
+eligibility portion of Q-120. Q-122 is deferred until before the first
+fallback-enabled relation. Keep source fallback disabled in the initial slice;
+identify the representative lookup during Step 3a and measure source capacity
+before enabling fallback.
+
+The contract decisions are ready for the initial vertical-slice design. The
+representative projection fixture remains to be selected and documented.
+ADR-0047 resolves Q-001, ADR-0005 resolves
+Q-002, ADR-0048 resolves Q-003's diagnostics and terminal handling, and ADR-0049
+resolves Q-004. ADR-0050 resolves Q-005 by setting a 30-day deletion-fence
+retention boundary, disallowing older raw replay, and requiring a current-source
+rebuild for recovery outside that window while accepting the residual expiry
+risk. ADR-0051 resolves Q-006: child absence is accepted only after complete
+source-bounded enumeration, and ambiguous scan completeness or ordering blocks
+cutover. ADR-0052 resolves Q-007: compare `source.ts_ms` + `source.ord` within
+one source/replica-set/entity scope; Q-123 verifies production fields before
+source enablement. ADR-0053 resolves Q-008 with typed, length-framed canonical
+IDs; ADR-0054 resolves Q-009 with duplicate no-op and fail-closed conflict
+repair handling; ADR-0055 resolves Q-011 with private derived per-entity fence
+metadata in Elasticsearch; ADR-0056 resolves Q-012's author-owned expected
+bound and benchmarked hard-cap policy; ADR-0057 resolves Q-013 with
+reverse-indexed reference recomputation; ADR-0058 resolves Q-014 with
+benchmark-derived per-relation live fan-out ceilings. ADR-0059 resolves Q-015
+with explicit relation lifecycle roles. ADR-0060 resolves Q-016 with a
+deterministic data-only Bloblang allowlist and benchmark-evidenced resource
+budgets. ADR-0061 resolves Q-017 with entity/relation-level invalidation through
+the declared graph. ADR-0062 resolves Q-018 by pinning the manifest hash and
+transformation identity per physical target and requiring blue-green migration
+for semantic changes. ADR-0063 resolves Q-126's independent-reference delete
+effects. ADR-0064 resolves Q-124: derived fence keys and fingerprints use
+domain-separated HMAC-SHA-256 tokens, fixed unpadded Base64URL, and target-pinned
+key IDs. The numeric per-event size limit remains evidence-gated. Q-070 supplies
+event, document, nested-capacity, reference-fan-out, and
+Bloblang resource numbers before production. Q-010 is deferred with a safe interim rule:
+snapshot-read events are unprocessable and go to durable DLQ custody; the
+question resumes before snapshot-read support is enabled. Q-122 is explicitly
+re-scoped to the first fallback-enabled relation, so it no longer blocks the
+initial contract package or vertical-slice design. Source fallback remains
+disabled until the benchmarked per-relation and aggregate limits are recorded.
+
 ## Agent workflow
 
 Agents working in this repository must first read the root
@@ -122,7 +167,10 @@ names:
   completion;
 - which behavior is shared across modes and which belongs to a mode or adapter;
 - dependency direction and ownership of state, retries, and observability;
-- how a second manifest or projection can reuse the same logic; and
+- how a second manifest or projection can reuse the same logic;
+- which direct-reference lookup could use source fallback, and how its actual
+  unique-index query, expected miss rate, representative source data, and
+  source-owner capacity will be measured before fallback is enabled; and
 - the tests that prove the boundaries rather than only the happy path.
 
 This design note is a milestone artifact. If it reveals a choice not covered by
@@ -185,8 +233,28 @@ lifecycle.
 
 ## Immediate next action
 
-Complete Step 1's baseline review and populate the follow-up register. Then
-design Step 2's contract package before selecting implementation structure.
+The immediate next step is Step 3a: select the representative projection and
+write the vertical-slice implementation design. Use that design to identify a
+real unique-index reference lookup, representative dataset, expected miss
+workload, and source owner for the Q-122 capacity benchmark. The source-side
+benchmark can run before the engine is deployed; the first slice keeps fallback
+disabled until measured per-relation and aggregate limits are recorded.
+ADR-0063 resolves Q-126's independent-reference delete behavior, and ADR-0064
+resolves Q-124's fence-token encoding and protection. Prepare the projection
+fixture before beginning Step 3b implementation.
+
+The contract decisions through Q-018 plus Q-124 and Q-126 now define identity
+and ordering, relationship lifecycle, deterministic bounded transformations,
+dependency invalidation, target-level transformation pins, and blue-green
+migration for semantic changes. Q-122 is deferred to the first fallback-enabled
+relation with a safe interim rule: fallback stays disabled until source-capacity
+budgets are measured and recorded. Q-124 is resolved by ADR-0064.
+Q-010 remains deferred with snapshot-read events sent to durable DLQ custody;
+Q-123 remains a production-source evidence gate; Q-070 supplies numeric event,
+nested-relation, fan-out, and transformation resource limits before production.
+Produce the manifest and event contracts plus a representative projection
+fixture. Do not select implementation structure until the Step 3a design
+checkpoint.
 
 ## Related documents
 

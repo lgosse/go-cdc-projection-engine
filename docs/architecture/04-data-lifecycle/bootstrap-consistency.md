@@ -12,6 +12,7 @@ conditions:
   - Each source uses its production connector's MongoDB source.wallTime/cluster-time watermark as a source-scoped bootstrap boundary.
   - The target receives live writes during scanning and replays the boundary overlap before cutover.
   - Delete safety combines source fences, replay, durable deletion custody, and final reconciliation.
+  - Child absence is authoritative only after complete relation enumeration at the boundary; unresolved completeness or ordering blocks cutover (ADR-0051).
   - Bootstrap runs and chunks have durable resumable checkpoints in engine-owned MongoDB metadata.
 ---
 
@@ -38,10 +39,16 @@ and related cache generation is caught up and validation succeeds.
 Delete safety is proven through a documented combination of:
 
 - source-scoped `wallTime` boundaries and freshness fences;
+- complete source-bounded relation enumeration for child membership; an absent
+  child is omitted from the rebuilt document only after enumeration completes;
 - live dual-write plus overlap replay for deletes occurring during the scan;
 - durable MongoDB deletion fences and derived hidden Elasticsearch tombstones;
 - final source-to-target reconciliation, including records absent from the
   snapshot and lagging-secondary observations.
+
+Do not manufacture a child revision from snapshot absence. Preserve any known
+child fence and keep the run pending if available ordering evidence cannot
+reject an older overlap event; see [ADR-0051](../decisions/0051-child-rebuild-from-source-snapshots.md).
 
 Persist bootstrap-run state and per-chunk checkpoints in engine-owned MongoDB.
 Mark a chunk complete only after its target writes and required cache work
@@ -58,7 +65,8 @@ same source boundary.
 
 - Cross-database snapshots cannot be globally transactional.
 - Capturing and replaying a boundary requires CDC connector support.
-- Deleted records absent from the snapshot still require explicit handling.
+- Partial relation scans and unresolved ordering cannot establish child absence
+  and may delay target cutover.
 - Secondary lag can return stale records unless boundary fencing and final
   reconciliation account for it.
 
@@ -90,6 +98,8 @@ same source boundary.
   target.
 - Deletes during the scan and stale secondary reads cannot leave resurrected
   documents after cutover.
+- Complete relation enumeration omits absent children; incomplete scans or
+  unresolved ordering keep the rebuild pending and block cutover.
 - Duplicate snapshot/CDC processing is harmless under the shared fencing rules.
 - A crashed run resumes unfinished chunks without losing the original boundary.
 - Live dual-write and overlap replay catch every source partition up to the
